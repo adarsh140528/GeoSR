@@ -32,6 +32,9 @@ interface GisMapCanvasProps {
   title?: string;
   badgeText?: string;
   customOverlay?: React.ReactNode;
+  splitView?: boolean;
+  splitPos?: number; // 0 to 1
+  onSplitPosChange?: (pos: number) => void;
 }
 
 export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
@@ -49,7 +52,10 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
   onCenterChange,
   title,
   badgeText,
-  customOverlay
+  customOverlay,
+  splitView,
+  splitPos,
+  onSplitPosChange
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -547,6 +553,88 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
           <span>{hoverCoords.lat}°N, {hoverCoords.lon}°E</span>
           <span style={{ color: '#727670', marginLeft: '6px' }}>|</span>
           <span style={{ marginLeft: '6px', color: '#9EC09B' }}>B4:{hoverCoords.b4} B8:{hoverCoords.b8}</span>
+        </div>
+      )}
+
+      {/* Split Slider Divider Overlay */}
+      {splitView && (
+        <div 
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: `${(splitPos ?? 0.5) * 100}%`,
+            width: '2px',
+            backgroundColor: '#FFFFFF',
+            boxShadow: '0 0 8px rgba(0,0,0,0.8)',
+            zIndex: 10,
+            cursor: 'ew-resize',
+            pointerEvents: 'auto'
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            const handleMouseMove = (moveEvent: MouseEvent) => {
+              if (!containerRef.current) return;
+              const rect = containerRef.current.getBoundingClientRect();
+              const newPos = Math.max(0.05, Math.min(0.95, (moveEvent.clientX - rect.left) / rect.width));
+              if (onSplitPosChange) onSplitPosChange(newPos);
+            };
+            const handleMouseUp = () => {
+              window.removeEventListener('mousemove', handleMouseMove);
+              window.removeEventListener('mouseup', handleMouseUp);
+            };
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+          }}
+        >
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '-12px',
+            transform: 'translateY(-50%)',
+            width: '26px',
+            height: '26px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--deep-sage)',
+            color: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+            border: '2px solid #FFFFFF'
+          }}>
+            ↔
+          </div>
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            right: '8px',
+            whiteSpace: 'nowrap',
+            backgroundColor: 'rgba(23, 25, 24, 0.85)',
+            color: '#FFFFFF',
+            fontSize: '9.5px',
+            padding: '2px 6px',
+            borderRadius: '3px',
+            border: '1px solid var(--border-subtle)'
+          }}>
+            2.5m GEOSR-X
+          </div>
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            left: '-100px',
+            whiteSpace: 'nowrap',
+            backgroundColor: 'rgba(23, 25, 24, 0.85)',
+            color: '#FFFFFF',
+            fontSize: '9.5px',
+            padding: '2px 6px',
+            borderRadius: '3px',
+            border: '1px solid var(--border-subtle)'
+          }}>
+            10m RAW L2A
+          </div>
         </div>
       )}
 

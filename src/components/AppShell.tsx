@@ -123,6 +123,27 @@ export const AppShell: React.FC<AppShellProps> = ({
 
       {/* MAIN CONTENT WRAPPER */}
       <div className="main-wrapper">
+        {/* DEMO MODE NOTICE BANNER */}
+        <div style={{
+          backgroundColor: 'rgba(183, 122, 50, 0.18)',
+          borderBottom: '1px solid var(--warning)',
+          color: '#E8CA97',
+          padding: '4px 16px',
+          fontSize: '10.5px',
+          fontFamily: 'var(--font-mono)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          letterSpacing: '0.04em'
+        }}>
+          <div>
+            <strong>DEMO MODE ACTIVE:</strong> SIMULATED MODEL RECONSTRUCTION & METRICS — NOT A MEASURED MODEL RESULT
+          </div>
+          <div style={{ opacity: 0.8 }}>
+            SEN2SR Sentinel-2 Reference Model (2.5m)
+          </div>
+        </div>
+
         {/* COMPACT TOP HEADER */}
         <header className="top-header">
           <div className="breadcrumb">
