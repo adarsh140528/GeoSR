@@ -1,22 +1,25 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { ZoomIn, ZoomOut, Compass, Maximize2, Layers, Eye, RefreshCw } from 'lucide-react';
+import { ZoomIn, ZoomOut, Compass, Maximize2, Layers, RefreshCw } from 'lucide-react';
 
 export type MapMode = 
   | '10m-raw' 
   | '2.5m-geosr' 
+  | 'bicubic'
   | 'reference' 
   | 'difference' 
   | 'false-color' 
   | 'ndvi' 
   | 'edge' 
   | 'reliability' 
+  | 'uncertainty'
   | 'geoai' 
   | 'change-detection' 
   | 'disaster-flood' 
   | 'agriculture-nashik' 
-  | 'urban-growth';
+  | 'urban-growth'
+  | string;
 
-interface GisMapCanvasProps {
+export interface GisMapCanvasProps {
   mode: MapMode;
   height?: number | string;
   showControls?: boolean;
@@ -33,18 +36,17 @@ interface GisMapCanvasProps {
   badgeText?: string;
   customOverlay?: React.ReactNode;
   splitView?: boolean;
-  splitPos?: number; // 0 to 1
+  splitPos?: number;
   onSplitPosChange?: (pos: number) => void;
 }
 
 export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
   mode,
-  height = 420,
+  height = 360,
   showControls = true,
   showCoordinates = true,
   showScaleBar = true,
   showLayerBar = false,
-  activeLayers = ['base'],
   opacity = 1,
   zoom: externalZoom,
   center: externalCenter,
@@ -63,21 +65,21 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
   const [internalZoom, setInternalZoom] = useState(1);
   const [internalCenter, setInternalCenter] = useState<[number, number]>([0, 0]);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [hoverCoords, setHoverCoords] = useState<{ lat: string; lon: string; utm: string; b2: number; b4: number; b8: number } | null>(null);
-  const [activeTabLayer, setActiveTabLayer] = useState<string>('RGB');
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [activeTabLayer, setActiveTabLayer] = useState('RGB');
+  const [hoverCoords, setHoverCoords] = useState<{ lat: string; lon: string; b4: number; b8: number } | null>(null);
 
-  const zoom = externalZoom !== undefined ? externalZoom : internalZoom;
-  const center = externalCenter !== undefined ? externalCenter : internalCenter;
+  const effectiveZoom = externalZoom !== undefined ? externalZoom : internalZoom;
+  const effectiveCenter = externalCenter !== undefined ? externalCenter : internalCenter;
 
   const handleZoomIn = () => {
-    const next = Math.min(zoom * 1.3, 4);
+    const next = Math.min(effectiveZoom * 1.25, 4);
     if (onZoomChange) onZoomChange(next);
     else setInternalZoom(next);
   };
 
   const handleZoomOut = () => {
-    const next = Math.max(zoom / 1.3, 0.7);
+    const next = Math.max(effectiveZoom / 1.25, 0.6);
     if (onZoomChange) onZoomChange(next);
     else setInternalZoom(next);
   };
@@ -91,329 +93,200 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
-    setDragStart({ x: e.clientX - center[0], y: e.clientY - center[1] });
+    setDragStart({ x: e.clientX - effectiveCenter[0], y: e.clientY - effectiveCenter[1] });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!canvasRef.current) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Realistic coordinates for Mumbai / Nashik bounds
-    const lat = (19.1150 - (y / rect.height) * 0.04).toFixed(4);
-    const lon = (72.8550 + (x / rect.width) * 0.04).toFixed(4);
-    const utm = `43N ${(273000 + x * 10).toFixed(0)} ${(2114000 + y * 10).toFixed(0)}`;
-    
-    // Synthetic multi-spectral reflectance
-    const b2 = Math.round(80 + ((x * 3 + y * 7) % 110));
-    const b4 = Math.round(95 + ((x * 5 + y * 2) % 120));
-    const b8 = mode === 'agriculture-nashik' ? Math.round(210 + (x % 60)) : Math.round(110 + (y % 80));
-
-    setHoverCoords({ lat, lon, utm, b2, b4, b8 });
-
     if (isDragging) {
-      const newX = e.clientX - dragStart.x;
-      const newY = e.clientY - dragStart.y;
-      if (onCenterChange) onCenterChange([newX, newY]);
-      else setInternalCenter([newX, newY]);
+      const next: [number, number] = [
+        e.clientX - dragStart.x,
+        e.clientY - dragStart.y
+      ];
+      if (onCenterChange) onCenterChange(next);
+      else setInternalCenter(next);
+    }
+
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / rect.width;
+      const relY = (e.clientY - rect.top) / rect.height;
+      const lat = (19.1245 + (0.5 - relY) * 0.04).toFixed(4);
+      const lon = (72.8682 + (relX - 0.5) * 0.05).toFixed(4);
+      const b4 = Math.round(1200 + relX * 400);
+      const b8 = Math.round(2800 + (1 - relY) * 900);
+      setHoverCoords({ lat, lon, b4, b8 });
     }
   };
 
   const handleMouseUp = () => setIsDragging(false);
 
-  // High-fidelity procedural GIS rendering
   const renderCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const width = (canvas.width = canvas.parentElement?.clientWidth || 600);
-    const heightPx = (canvas.height = typeof height === 'number' ? height : 400);
+    const width = canvas.parentElement?.clientWidth || 600;
+    const heightPx = typeof height === 'number' ? height : 360;
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = heightPx * dpr;
+    ctx.scale(dpr, dpr);
+
+    // Deep Dark Satellite Base
+    ctx.fillStyle = '#0F172A';
+    ctx.fillRect(0, 0, width, heightPx);
 
     ctx.save();
-    ctx.clearRect(0, 0, width, heightPx);
-
-    // Apply zoom and pan transformation
-    ctx.translate(width / 2 + center[0], heightPx / 2 + center[1]);
-    ctx.scale(zoom, zoom);
+    ctx.translate(width / 2 + effectiveCenter[0], heightPx / 2 + effectiveCenter[1]);
+    ctx.scale(effectiveZoom, effectiveZoom);
     ctx.translate(-width / 2, -heightPx / 2);
 
-    ctx.globalAlpha = opacity;
+    const isSR = mode === '2.5m-geosr' || mode === 'geoai' || mode === 'change-detection' || mode === 'uncertainty' || mode === 'reliability';
 
-    // 1. BASE TERRAIN (Realistic multi-spectral palette)
-    if (mode === 'agriculture-nashik') {
-      // Agricultural parcel grid
-      ctx.fillStyle = '#C8BFA7'; // Soil background
-      ctx.fillRect(-200, -200, width + 400, heightPx + 400);
+    // 1. Terrain / vegetation background
+    ctx.fillStyle = '#1E293B';
+    ctx.fillRect(-100, -100, width + 200, heightPx + 200);
 
-      // Render farming plots with varying NDVI / crop tones
-      const plotColors = ['#4A6B3D', '#65884B', '#8FA963', '#B8AA6E', '#8C9E5E', '#3E5C32', '#C48D4C'];
-      for (let r = -2; r < 14; r++) {
-        for (let c = -2; c < 16; c++) {
-          const px = c * 52 + ((r % 2) * 12);
-          const py = r * 44;
-          const w = 48 + ((r + c) % 8);
-          const h = 40 + ((r * c) % 6);
-          const colIdx = Math.abs((r * 7 + c * 13) % plotColors.length);
+    // 2. Agricultural or secondary land parcels
+    ctx.fillStyle = mode === 'agriculture-nashik' ? '#14532D' : '#1E3A5F';
+    ctx.beginPath();
+    ctx.moveTo(30, 20);
+    ctx.lineTo(width * 0.45, 10);
+    ctx.lineTo(width * 0.4, heightPx * 0.45);
+    ctx.lineTo(20, heightPx * 0.4);
+    ctx.closePath();
+    ctx.fill();
 
-          ctx.fillStyle = plotColors[colIdx];
-          ctx.fillRect(px, py, w, h);
-          ctx.strokeStyle = '#2B3026';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(px, py, w, h);
+    // 3. Dense Urban zone
+    ctx.fillStyle = isSR ? '#334155' : '#1E293B';
+    ctx.beginPath();
+    ctx.moveTo(width * 0.35, heightPx * 0.2);
+    ctx.lineTo(width * 0.95, heightPx * 0.15);
+    ctx.lineTo(width * 0.9, heightPx * 0.9);
+    ctx.lineTo(width * 0.3, heightPx * 0.85);
+    ctx.closePath();
+    ctx.fill();
 
-          // Parcel crop rows texture
-          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-          ctx.lineWidth = 0.8;
-          ctx.beginPath();
-          for (let l = 6; l < h; l += 8) {
-            ctx.moveTo(px + 3, py + l);
-            ctx.lineTo(px + w - 3, py + l);
-          }
-          ctx.stroke();
-        }
-      }
+    // 4. Water body / River
+    ctx.strokeStyle = '#0284C7';
+    ctx.lineWidth = isSR ? 20 : 26;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-40, heightPx * 0.8);
+    ctx.bezierCurveTo(width * 0.3, heightPx * 0.7, width * 0.6, heightPx * 0.95, width + 40, heightPx * 0.6);
+    ctx.stroke();
 
-      // Godavari River tributary
-      ctx.strokeStyle = '#3E5E72';
-      ctx.lineWidth = 18;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-50, heightPx * 0.7);
-      ctx.bezierCurveTo(width * 0.3, heightPx * 0.6, width * 0.6, heightPx * 0.85, width + 100, heightPx * 0.75);
-      ctx.stroke();
+    // 5. Road networks
+    ctx.strokeStyle = isSR ? '#94A3B8' : '#64748B';
+    ctx.lineWidth = isSR ? 2.5 : 4.5;
+    ctx.beginPath();
+    ctx.moveTo(width * 0.1, -20);
+    ctx.lineTo(width * 0.85, heightPx + 20);
+    ctx.moveTo(-20, heightPx * 0.45);
+    ctx.lineTo(width + 20, heightPx * 0.4);
+    ctx.moveTo(width * 0.4, heightPx * 0.1);
+    ctx.lineTo(width * 0.35, heightPx * 0.9);
+    ctx.moveTo(width * 0.65, heightPx * 0.1);
+    ctx.lineTo(width * 0.6, heightPx * 0.9);
+    ctx.stroke();
 
-    } else if (mode === 'false-color') {
-      // CIR (NIR as Red, Red as Green, Green as Blue)
-      ctx.fillStyle = '#6E7778'; // Urban slate
-      ctx.fillRect(-200, -200, width + 400, heightPx + 400);
-
-      // Deep red vegetation zones
-      const vegPats = [
-        { x: 40, y: 30, w: 180, h: 120 },
-        { x: 340, y: 160, w: 220, h: 180 },
-        { x: 120, y: 260, w: 160, h: 110 }
+    // Crisp buildings for 2.5m
+    if (isSR) {
+      const buildings = [
+        { x: width * 0.42, y: heightPx * 0.25, w: 22, h: 16, color: '#E2E8F0' },
+        { x: width * 0.48, y: heightPx * 0.23, w: 30, h: 20, color: '#CBD5E1' },
+        { x: width * 0.56, y: heightPx * 0.28, w: 18, h: 25, color: '#94A3B8' },
+        { x: width * 0.45, y: heightPx * 0.35, w: 35, h: 24, color: '#E2E8F0' },
+        { x: width * 0.54, y: heightPx * 0.38, w: 20, h: 18, color: '#F1F5F9' },
+        { x: width * 0.62, y: heightPx * 0.33, w: 28, h: 22, color: '#CBD5E1' },
+        { x: width * 0.70, y: heightPx * 0.36, w: 40, h: 30, color: '#94A3B8' },
+        { x: width * 0.48, y: heightPx * 0.50, w: 25, h: 20, color: '#CBD5E1' },
+        { x: width * 0.56, y: heightPx * 0.52, w: 32, h: 22, color: '#E2E8F0' },
+        { x: width * 0.68, y: heightPx * 0.48, w: 45, h: 35, color: '#94A3B8' },
+        { x: width * 0.78, y: heightPx * 0.55, w: 24, h: 20, color: '#CBD5E1' },
+        { x: width * 0.42, y: heightPx * 0.62, w: 28, h: 18, color: '#E2E8F0' }
       ];
-      vegPats.forEach(v => {
-        ctx.fillStyle = '#942B28'; // Deep CIR vermilion
-        ctx.fillRect(v.x, v.y, v.w, v.h);
+
+      buildings.forEach(b => {
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+        ctx.lineWidth = 0.75;
+        ctx.strokeRect(b.x, b.y, b.w, b.h);
       });
-
-    } else if (mode === 'ndvi') {
-      // NDVI colormap gradient
-      const ndviGrad = ctx.createLinearGradient(0, 0, width, heightPx);
-      ndviGrad.addColorStop(0, '#C49859'); // Low/Soil
-      ndviGrad.addColorStop(0.3, '#A8B35A'); // Moderate
-      ndviGrad.addColorStop(0.7, '#4E7D3F'); // High
-      ndviGrad.addColorStop(1, '#234C1D'); // Dense Canopy
-      ctx.fillStyle = ndviGrad;
-      ctx.fillRect(-200, -200, width + 400, heightPx + 400);
-
-      // Add urban low NDVI masks
-      ctx.fillStyle = '#7C674F';
-      for (let i = 0; i < 20; i++) {
-        const bx = 60 + (i % 5) * 110;
-        const by = 40 + Math.floor(i / 5) * 80;
-        ctx.fillRect(bx, by, 70, 50);
-      }
-
-    } else if (mode === 'difference') {
-      // Spectral residual map (dark graphite with localized error zones)
-      ctx.fillStyle = '#171918';
-      ctx.fillRect(-200, -200, width + 400, heightPx + 400);
-
-      // Heat / error blobs (subtle amber and olive)
-      const grad = ctx.createRadialGradient(width * 0.45, heightPx * 0.4, 10, width * 0.45, heightPx * 0.4, 120);
-      grad.addColorStop(0, 'rgba(183, 122, 50, 0.7)');
-      grad.addColorStop(0.6, 'rgba(88, 100, 74, 0.4)');
-      grad.addColorStop(1, 'rgba(23, 25, 24, 0)');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(width * 0.45, heightPx * 0.4, 140, 0, Math.PI * 2);
-      ctx.fill();
-
-    } else if (mode === 'reliability') {
-      // Reliability & uncertainty zoning
-      ctx.fillStyle = '#2A3029'; // Base high confidence
-      ctx.fillRect(-200, -200, width + 400, heightPx + 400);
-
-      // High Confidence Zone (71%) - Muted Forest Green
-      ctx.fillStyle = 'rgba(77, 107, 74, 0.75)';
-      ctx.fillRect(20, 20, width * 0.65, heightPx - 40);
-
-      // Moderate Uncertainty Zone (22%) - Muted Amber
-      ctx.fillStyle = 'rgba(183, 122, 50, 0.65)';
-      ctx.fillRect(width * 0.65, 30, width * 0.28, heightPx * 0.55);
-
-      // High Uncertainty Zone (7%) - Subdued Red
-      ctx.fillStyle = 'rgba(169, 74, 61, 0.75)';
-      ctx.beginPath();
-      ctx.arc(width * 0.78, heightPx * 0.75, 45, 0, Math.PI * 2);
-      ctx.fill();
-
-    } else {
-      // Standard Urban Mumbai Satellite Palette (Base Surface)
-      ctx.fillStyle = '#6E6B62'; // Soil & road asphalt substrate
-      ctx.fillRect(-200, -200, width + 400, heightPx + 400);
-
-      // Water body (Mithi River & Mahim Creek estuary)
-      ctx.fillStyle = '#2A3F4F';
-      ctx.beginPath();
-      ctx.moveTo(-50, heightPx * 0.2);
-      ctx.bezierCurveTo(width * 0.35, heightPx * 0.15, width * 0.5, heightPx * 0.55, width + 100, heightPx * 0.48);
-      ctx.lineTo(width + 100, heightPx * 0.62);
-      ctx.bezierCurveTo(width * 0.45, heightPx * 0.7, width * 0.3, heightPx * 0.35, -50, heightPx * 0.36);
-      ctx.closePath();
-      ctx.fill();
-
-      // Vegetation pockets (Aarey Colony buffer & urban parks)
-      const vegPolys = [
-        { x: 30, y: 40, w: 140, h: 90 },
-        { x: width * 0.65, y: 50, w: 180, h: 140 },
-        { x: 60, y: heightPx * 0.65, w: 190, h: 110 }
-      ];
-      ctx.fillStyle = '#42553B';
-      vegPolys.forEach(vp => {
-        ctx.beginPath();
-        ctx.roundRect(vp.x, vp.y, vp.w, vp.h, [8, 16, 12, 6]);
-        ctx.fill();
-      });
-
-      // Urban building blocks
-      const isPixelated = mode === '10m-raw';
-      const buildingCount = isPixelated ? 25 : 120;
-      const blurFactor = isPixelated ? 8 : 1;
-
-      for (let i = 0; i < buildingCount; i++) {
-        const bx = 40 + (i % (isPixelated ? 5 : 12)) * (isPixelated ? 80 : 38);
-        const by = 30 + Math.floor(i / (isPixelated ? 5 : 12)) * (isPixelated ? 65 : 32);
-        const bw = isPixelated ? 55 : 24 + ((i * 7) % 18);
-        const bh = isPixelated ? 45 : 18 + ((i * 5) % 14);
-
-        if (isPixelated) {
-          // 10m Sentinel-2 sensor pixelation effect
-          ctx.fillStyle = i % 2 === 0 ? '#8E8A80' : '#A29E93';
-          ctx.fillRect(Math.floor(bx / blurFactor) * blurFactor, Math.floor(by / blurFactor) * blurFactor, bw, bh);
-        } else {
-          // 2.5m Super-Resolved GeoSR-X crisp architectural geometries
-          ctx.fillStyle = ['#A8A49A', '#B5B1A6', '#7C7972', '#C2BEB4', '#5F5C56'][i % 5];
-          ctx.fillRect(bx, by, bw, bh);
-          ctx.strokeStyle = '#32302C';
-          ctx.lineWidth = 0.75;
-          ctx.strokeRect(bx, by, bw, bh);
-
-          // Roof shadow effect
-          ctx.fillStyle = 'rgba(23, 25, 24, 0.35)';
-          ctx.fillRect(bx + bw, by + 2, 3, bh);
-          ctx.fillRect(bx + 2, by + bh, bw, 3);
-        }
-      }
-
-      // Transportation grid (Western Express Highway & arterial corridors)
-      ctx.strokeStyle = isPixelated ? '#54524C' : '#33312E';
-      ctx.lineWidth = isPixelated ? 12 : 6;
-      ctx.beginPath();
-      // Main Highway
-      ctx.moveTo(width * 0.28, -50);
-      ctx.lineTo(width * 0.32, heightPx + 50);
-      // Andheri-Kurla Link Road
-      ctx.moveTo(-50, heightPx * 0.52);
-      ctx.lineTo(width + 50, heightPx * 0.48);
-      // Secondary Link
-      ctx.moveTo(width * 0.7, -50);
-      ctx.lineTo(width * 0.65, heightPx + 50);
-      ctx.stroke();
-
-      if (!isPixelated) {
-        // Crisp lane markings & flyover shadows on GeoSR-X output
-        ctx.strokeStyle = '#D1CDC2';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([6, 6]);
-        ctx.beginPath();
-        ctx.moveTo(width * 0.28, -50);
-        ctx.lineTo(width * 0.32, heightPx + 50);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
     }
 
-    // 2. VECTOR OVERLAYS BASED ON SPECIAL MODES
+    // Specific Overlays
     if (mode === 'geoai') {
-      // Building Footprint Vector Polygons
-      ctx.strokeStyle = '#E0A146'; // Muted gold vector line
+      ctx.strokeStyle = '#3B82F6';
       ctx.lineWidth = 1.5;
-      ctx.fillStyle = 'rgba(224, 161, 70, 0.2)';
-      for (let i = 0; i < 18; i++) {
-        const bx = 50 + (i % 6) * 75;
-        const by = 40 + Math.floor(i / 6) * 65;
-        ctx.fillRect(bx, by, 48, 36);
-        ctx.strokeRect(bx, by, 48, 36);
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.35)';
 
-        // Polygon centroid tag
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '8px IBM Plex Mono';
-        ctx.fillText(`ID-${1024 + i}`, bx + 4, by + 12);
-      }
+      const polys = [
+        [ { x: width * 0.42, y: heightPx * 0.25 }, { x: width * 0.42 + 22, y: heightPx * 0.25 }, { x: width * 0.42 + 22, y: heightPx * 0.25 + 16 }, { x: width * 0.42, y: heightPx * 0.25 + 16 } ],
+        [ { x: width * 0.48, y: heightPx * 0.23 }, { x: width * 0.48 + 30, y: heightPx * 0.23 }, { x: width * 0.48 + 30, y: heightPx * 0.23 + 20 }, { x: width * 0.48, y: heightPx * 0.23 + 20 } ],
+        [ { x: width * 0.70, y: heightPx * 0.36 }, { x: width * 0.70 + 40, y: heightPx * 0.36 }, { x: width * 0.70 + 40, y: heightPx * 0.36 + 30 }, { x: width * 0.70, y: heightPx * 0.36 + 30 } ]
+      ];
 
-      // Road Centerlines
-      ctx.strokeStyle = '#4392C7';
+      polys.forEach(p => {
+        ctx.beginPath();
+        ctx.moveTo(p[0].x, p[0].y);
+        for (let i = 1; i < p.length; i++) ctx.lineTo(p[i].x, p[i].y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      ctx.strokeStyle = '#F59E0B';
       ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.moveTo(width * 0.28, 0);
-      ctx.lineTo(width * 0.32, heightPx);
-      ctx.moveTo(0, heightPx * 0.52);
-      ctx.lineTo(width, heightPx * 0.48);
+      ctx.moveTo(width * 0.1, -20);
+      ctx.lineTo(width * 0.85, heightPx + 20);
       ctx.stroke();
 
     } else if (mode === 'change-detection') {
-      // Temporal Change Polygons
-      // New building additions (Red/Coral)
-      ctx.fillStyle = 'rgba(196, 106, 66, 0.45)';
-      ctx.strokeStyle = '#C46A42';
+      ctx.strokeStyle = '#F43F5E';
       ctx.lineWidth = 2;
-      ctx.fillRect(width * 0.42, heightPx * 0.3, 56, 44);
-      ctx.strokeRect(width * 0.42, heightPx * 0.3, 56, 44);
-      
-      ctx.fillRect(width * 0.15, heightPx * 0.65, 48, 40);
-      ctx.strokeRect(width * 0.15, heightPx * 0.65, 48, 40);
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.35)';
 
-      // Road Extension (Amber)
-      ctx.strokeStyle = '#B77A32';
-      ctx.lineWidth = 4;
+      ctx.fillRect(width * 0.48, heightPx * 0.50, 25, 20);
+      ctx.strokeRect(width * 0.48, heightPx * 0.50, 25, 20);
+
+      ctx.strokeStyle = '#F59E0B';
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(width * 0.32, heightPx * 0.5);
-      ctx.lineTo(width * 0.58, heightPx * 0.65);
+      ctx.moveTo(width * 0.65, heightPx * 0.4);
+      ctx.lineTo(width * 0.85, heightPx * 0.43);
       ctx.stroke();
 
-      // Canopy Loss (Forest/Olive)
-      ctx.fillStyle = 'rgba(88, 100, 74, 0.5)';
-      ctx.strokeStyle = '#58644A';
-      ctx.strokeRect(width * 0.65, heightPx * 0.2, 70, 50);
-      ctx.fillRect(width * 0.65, heightPx * 0.2, 70, 50);
+    } else if (mode === 'uncertainty' || mode === 'reliability') {
+      const grad = ctx.createRadialGradient(width * 0.55, heightPx * 0.45, 10, width * 0.55, heightPx * 0.45, width * 0.4);
+      grad.addColorStop(0, 'rgba(16, 185, 129, 0.5)');
+      grad.addColorStop(0.6, 'rgba(245, 158, 11, 0.4)');
+      grad.addColorStop(1, 'rgba(244, 63, 94, 0.5)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, heightPx);
 
     } else if (mode === 'disaster-flood') {
-      // Inundated zones
-      ctx.fillStyle = 'rgba(62, 94, 114, 0.65)';
+      ctx.fillStyle = 'rgba(2, 132, 199, 0.7)';
       ctx.beginPath();
-      ctx.moveTo(0, heightPx * 0.3);
-      ctx.bezierCurveTo(width * 0.4, heightPx * 0.2, width * 0.6, heightPx * 0.8, width, heightPx * 0.55);
-      ctx.lineTo(width, heightPx);
-      ctx.lineTo(0, heightPx);
+      ctx.moveTo(-50, heightPx * 0.4);
+      ctx.bezierCurveTo(width * 0.4, heightPx * 0.35, width * 0.6, heightPx * 0.75, width + 50, heightPx * 0.5);
+      ctx.lineTo(width + 50, heightPx + 50);
+      ctx.lineTo(-50, heightPx + 50);
       ctx.closePath();
       ctx.fill();
 
-      // Critical damage nodes
       const criticalPoints = [
-        { x: width * 0.35, y: heightPx * 0.45, label: 'ZONE 1 - 1.8m INUNDATION' },
-        { x: width * 0.55, y: heightPx * 0.68, label: 'ZONE 2 - BRIDGE OVERFLOW' },
-        { x: width * 0.2, y: heightPx * 0.75, label: 'ZONE 3 - POWER SUBSTATION' }
+        { x: width * 0.38, y: heightPx * 0.52, label: 'Zone 1: Residential' },
+        { x: width * 0.55, y: heightPx * 0.68, label: 'Zone 2: Bridge Access' },
+        { x: width * 0.2, y: heightPx * 0.75, label: 'Zone 3: Substation' }
       ];
 
       criticalPoints.forEach(cp => {
-        ctx.fillStyle = '#A94A3D';
+        ctx.fillStyle = '#F43F5E';
         ctx.beginPath();
         ctx.arc(cp.x, cp.y, 7, 0, Math.PI * 2);
         ctx.fill();
@@ -421,30 +294,16 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        ctx.fillStyle = '#171918';
+        ctx.fillStyle = '#0F172A';
         ctx.fillRect(cp.x + 10, cp.y - 8, 140, 16);
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = '8.5px IBM Plex Mono';
+        ctx.font = '9px Inter';
         ctx.fillText(cp.label, cp.x + 14, cp.y + 3);
       });
-
-    } else if (mode === 'urban-growth') {
-      // Multi-temporal urban extents
-      ctx.strokeStyle = '#58644A'; // 2019 extent
-      ctx.lineWidth = 2;
-      ctx.strokeRect(60, 50, width * 0.5, heightPx * 0.5);
-
-      ctx.strokeStyle = '#B77A32'; // 2022 extent
-      ctx.lineWidth = 2;
-      ctx.strokeRect(40, 35, width * 0.65, heightPx * 0.68);
-
-      ctx.strokeStyle = '#C46A42'; // 2026 current boundary
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(20, 20, width * 0.82, heightPx * 0.85);
     }
 
-    // Grid crosshairs / sensor coordinate grid
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    // Grid crosshairs
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
     ctx.lineWidth = 0.5;
     for (let x = 0; x < width; x += 100) {
       ctx.beginPath();
@@ -460,7 +319,7 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
     }
 
     ctx.restore();
-  }, [mode, zoom, center, opacity, height]);
+  }, [mode, effectiveZoom, effectiveCenter, opacity, height]);
 
   useEffect(() => {
     renderCanvas();
@@ -486,27 +345,21 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
         <div className="gis-layer-bar">
           {title && (
             <span style={{ 
-              backgroundColor: 'rgba(23, 25, 24, 0.9)', 
+              backgroundColor: 'rgba(15, 23, 42, 0.9)', 
               color: '#FFFFFF', 
-              padding: '3px 8px', 
+              padding: '4px 10px', 
               fontSize: '11px', 
-              fontWeight: 600,
-              borderRadius: '3px',
-              border: '1px solid #383C38',
-              fontFamily: 'var(--font-mono)'
+              fontWeight: 700,
+              borderRadius: '6px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              fontFamily: 'var(--font-sans)',
+              letterSpacing: '-0.01em'
             }}>
               {title}
             </span>
           )}
           {badgeText && (
-            <span style={{ 
-              backgroundColor: 'var(--olive)', 
-              color: '#FFFFFF', 
-              padding: '3px 6px', 
-              fontSize: '10px', 
-              borderRadius: '3px',
-              fontFamily: 'var(--font-mono)'
-            }}>
+            <span className="pill-badge pill-green" style={{ fontSize: '10.5px' }}>
               {badgeText}
             </span>
           )}
@@ -526,7 +379,7 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
         </div>
       )}
 
-      {/* GIS Map Navigation Tools */}
+      {/* Map Navigation Controls */}
       {showControls && (
         <div className="gis-controls">
           <button className="gis-btn" title="Zoom In" onClick={handleZoomIn}><ZoomIn size={14} /></button>
@@ -540,19 +393,19 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
       {/* Dynamic Scale Bar */}
       {showScaleBar && (
         <div className="gis-scale-bar">
-          <div style={{ width: '40px', height: '2px', backgroundColor: '#E2E4DE' }}></div>
-          <span>{(100 / zoom).toFixed(0)} m</span>
-          <span style={{ color: '#727670' }}>|</span>
-          <span>1:{Math.round(2500 / zoom)}</span>
+          <div style={{ width: '36px', height: '2px', backgroundColor: '#0F172A' }} />
+          <span>{(100 / effectiveZoom).toFixed(0)} m</span>
+          <span style={{ color: '#94A3B8' }}>|</span>
+          <span>1:{Math.round(2500 / effectiveZoom)}</span>
         </div>
       )}
 
       {/* Live Probe & Coordinate Readout */}
       {showCoordinates && hoverCoords && (
         <div className="gis-coords">
-          <span>{hoverCoords.lat}°N, {hoverCoords.lon}°E</span>
-          <span style={{ color: '#727670', marginLeft: '6px' }}>|</span>
-          <span style={{ marginLeft: '6px', color: '#9EC09B' }}>B4:{hoverCoords.b4} B8:{hoverCoords.b8}</span>
+          <span className="mono">{hoverCoords.lat}°N, {hoverCoords.lon}°E</span>
+          <span style={{ color: '#94A3B8', marginLeft: '6px' }}>|</span>
+          <span className="mono" style={{ marginLeft: '6px', color: 'var(--primary-blue)', fontWeight: 600 }}>B4:{hoverCoords.b4} B8:{hoverCoords.b8}</span>
         </div>
       )}
 
@@ -566,7 +419,7 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
             left: `${(splitPos ?? 0.5) * 100}%`,
             width: '2px',
             backgroundColor: '#FFFFFF',
-            boxShadow: '0 0 8px rgba(0,0,0,0.8)',
+            boxShadow: '0 0 10px rgba(0,0,0,0.6)',
             zIndex: 10,
             cursor: 'ew-resize',
             pointerEvents: 'auto'
@@ -590,19 +443,19 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
           <div style={{
             position: 'absolute',
             top: '50%',
-            left: '-12px',
+            left: '-14px',
             transform: 'translateY(-50%)',
-            width: '26px',
-            height: '26px',
+            width: '28px',
+            height: '28px',
             borderRadius: '50%',
-            backgroundColor: 'var(--deep-sage)',
+            background: 'var(--primary-gradient)',
             color: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '11px',
+            fontSize: '12px',
             fontWeight: 'bold',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.5)',
             border: '2px solid #FFFFFF'
           }}>
             ↔
@@ -610,30 +463,32 @@ export const GisMapCanvas: React.FC<GisMapCanvasProps> = ({
           <div style={{
             position: 'absolute',
             top: '12px',
-            right: '8px',
+            right: '10px',
             whiteSpace: 'nowrap',
-            backgroundColor: 'rgba(23, 25, 24, 0.85)',
+            backgroundColor: 'rgba(15, 23, 42, 0.85)',
             color: '#FFFFFF',
-            fontSize: '9.5px',
-            padding: '2px 6px',
-            borderRadius: '3px',
-            border: '1px solid var(--border-subtle)'
+            fontSize: '10.5px',
+            fontWeight: 600,
+            padding: '3px 8px',
+            borderRadius: '6px',
+            border: '1px solid rgba(255,255,255,0.1)'
           }}>
-            2.5m GEOSR-X
+            2.5m Super-Resolved
           </div>
           <div style={{
             position: 'absolute',
             top: '12px',
-            left: '-100px',
+            left: '-120px',
             whiteSpace: 'nowrap',
-            backgroundColor: 'rgba(23, 25, 24, 0.85)',
+            backgroundColor: 'rgba(15, 23, 42, 0.85)',
             color: '#FFFFFF',
-            fontSize: '9.5px',
-            padding: '2px 6px',
-            borderRadius: '3px',
-            border: '1px solid var(--border-subtle)'
+            fontSize: '10.5px',
+            fontWeight: 600,
+            padding: '3px 8px',
+            borderRadius: '6px',
+            border: '1px solid rgba(255,255,255,0.1)'
           }}>
-            10m RAW L2A
+            10m Sentinel-2 (Raw)
           </div>
         </div>
       )}

@@ -1,20 +1,23 @@
-import React from 'react';
-import {
-  LayoutDashboard,
-  FolderKanban,
-  Sparkles,
-  Cpu,
-  GitCompare,
-  Globe2,
-  FileText,
-  CheckCircle2,
-  Settings,
-  Layers,
-  ChevronRight
+import React, { useState } from 'react';
+import { 
+  Home, 
+  FolderKanban, 
+  Sliders, 
+  Sparkles, 
+  Cpu, 
+  GitCompare, 
+  Globe2, 
+  FileText, 
+  Settings, 
+  HelpCircle, 
+  Satellite, 
+  CheckCircle2, 
+  Layers, 
+  Database 
 } from 'lucide-react';
 import { CURRENT_PROJECT } from '../data/mockData';
 
-export type RouteId =
+export type RouteId = 
   | 'mission-control'
   | 'projects'
   | 'project-workspace'
@@ -25,190 +28,236 @@ export type RouteId =
   | 'domain'
   | 'reports';
 
-export interface NavItemConfig {
-  id: RouteId;
-  label: string;
-  icon: React.ElementType;
-  section: string;
-  breadcrumb: string[];
-}
-
-export const SIDEBAR_ITEMS: NavItemConfig[] = [
-  { id: 'mission-control', label: 'Mission Control', icon: LayoutDashboard, section: 'OVERVIEW', breadcrumb: ['MISSION CONTROL'] },
-  { id: 'projects', label: 'Projects', icon: FolderKanban, section: 'WORKSPACE', breadcrumb: ['WORKSPACE', 'PROJECTS'] },
-  { id: 'super-resolution', label: 'Super Resolution', icon: Sparkles, section: 'ANALYSIS', breadcrumb: ['PROJECTS', 'URBAN MUMBAI', 'SUPER RESOLUTION'] },
-  { id: 'geoai', label: 'GeoAI Analysis', icon: Cpu, section: 'ANALYSIS', breadcrumb: ['PROJECTS', 'URBAN MUMBAI', 'GEOAI ANALYSIS'] },
-  { id: 'change-detection', label: 'Change Detection', icon: GitCompare, section: 'ANALYSIS', breadcrumb: ['PROJECTS', 'URBAN MUMBAI', 'CHANGE DETECTION'] },
-  { id: 'domain', label: 'Domain Intelligence', icon: Globe2, section: 'INTELLIGENCE', breadcrumb: ['PROJECTS', 'URBAN MUMBAI', 'DOMAIN INTELLIGENCE'] },
-  { id: 'reports', label: 'Reports', icon: FileText, section: 'OUTPUT', breadcrumb: ['PROJECTS', 'URBAN MUMBAI', 'INTELLIGENCE REPORTS'] }
-];
-
-export const PROJECT_TABS: { id: RouteId; label: string }[] = [
-  { id: 'project-workspace', label: 'Overview' },
-  { id: 'project-setup', label: 'Setup & Quality' },
-  { id: 'super-resolution', label: 'Super Resolution' },
-  { id: 'geoai', label: 'GeoAI' },
-  { id: 'change-detection', label: 'Change Detection' },
-  { id: 'domain', label: 'Domain' },
-  { id: 'reports', label: 'Reports' }
-];
-
 interface AppShellProps {
   currentRoute: RouteId;
   onNavigate: (route: RouteId) => void;
+  toastMessage: string | null;
   children: React.ReactNode;
-  toastMessage?: string | null;
 }
 
 export const AppShell: React.FC<AppShellProps> = ({
   currentRoute,
   onNavigate,
-  children,
-  toastMessage
+  toastMessage,
+  children
 }) => {
-  const sections = Array.from(new Set(SIDEBAR_ITEMS.map(n => n.section)));
-  const isProjectContext = currentRoute !== 'mission-control' && currentRoute !== 'projects';
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
-  const getBreadcrumbs = () => {
-    if (currentRoute === 'mission-control') return ['MISSION CONTROL'];
-    if (currentRoute === 'projects') return ['WORKSPACE', 'PROJECTS'];
-    const subTab = PROJECT_TABS.find(t => t.id === currentRoute);
-    return ['PROJECTS', 'URBAN MUMBAI', subTab?.label.toUpperCase() || 'WORKSPACE'];
-  };
-
-  const breadcrumbs = getBreadcrumbs();
+  const navItems = [
+    { id: 'mission-control' as RouteId, label: 'Overview', icon: Home },
+    { id: 'projects' as RouteId, label: 'Projects', icon: FolderKanban },
+    { id: 'project-setup' as RouteId, label: 'Setup & Quality', icon: Sliders },
+    { id: 'super-resolution' as RouteId, label: 'Super Resolution', icon: Sparkles },
+    { id: 'geoai' as RouteId, label: 'GeoAI', icon: Cpu },
+    { id: 'change-detection' as RouteId, label: 'Change Detection', icon: GitCompare },
+    { id: 'domain' as RouteId, label: 'Domain Models', icon: Globe2 },
+    { id: 'reports' as RouteId, label: 'Reports', icon: FileText }
+  ];
 
   return (
     <div className="app-layout">
-      {/* STREAMLINED SIDEBAR (ONLY 6 PRIMARY DESTINATIONS) */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <div className="brand-title">
-            <span>GeoSR-X</span>
-            <span className="brand-badge">PRO</span>
-          </div>
-          <div className="brand-subtitle">GEOSPATIAL INTELLIGENCE</div>
-        </div>
-
-        <nav className="sidebar-nav">
-          {sections.map(sec => (
-            <div key={sec} className="nav-section">
-              <div className="nav-section-title">{sec}</div>
-              {SIDEBAR_ITEMS.filter(n => n.section === sec).map(item => {
-                const Icon = item.icon;
-                const isActive = currentRoute === item.id || 
-                  (item.id === 'projects' && currentRoute === 'project-workspace');
-                return (
-                  <button
-                    key={item.id}
-                    className={`nav-item ${isActive ? 'active' : ''}`}
-                    onClick={() => onNavigate(item.id)}
-                  >
-                    <Icon className="nav-icon" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
+      {/* MODERN LIGHT HEADER */}
+      <header className="app-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Logo & Brand */}
+          <div 
+            style={{ display: 'flex', alignItems: 'center', gap: '9px', cursor: 'pointer' }}
+            onClick={() => onNavigate('mission-control')}
+          >
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              background: 'var(--primary-gradient)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#FFFFFF',
+              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
+            }}>
+              <Satellite size={17} />
             </div>
-          ))}
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="status-indicator">
-            <span className="status-dot"></span>
-            <span className="status-text" style={{ fontSize: '11px', fontWeight: 500 }}>SYSTEM OPERATIONAL</span>
+            <div>
+              <span style={{ fontWeight: 800, fontSize: '16px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+                GeoSR-X
+              </span>
+            </div>
           </div>
-        </div>
-      </aside>
 
-      {/* MAIN CONTENT WRAPPER */}
-      <div className="main-wrapper">
-        {/* DEMO MODE NOTICE BANNER */}
-        <div style={{
-          backgroundColor: 'rgba(183, 122, 50, 0.18)',
-          borderBottom: '1px solid var(--warning)',
-          color: '#E8CA97',
-          padding: '4px 16px',
-          fontSize: '10.5px',
-          fontFamily: 'var(--font-mono)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          letterSpacing: '0.04em'
-        }}>
-          <div>
-            <strong>DEMO MODE ACTIVE:</strong> SIMULATED MODEL RECONSTRUCTION & METRICS — NOT A MEASURED MODEL RESULT
-          </div>
-          <div style={{ opacity: 0.8 }}>
-            SEN2SR Sentinel-2 Reference Model (2.5m)
+          <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--border-subtle)' }} />
+
+          {/* ACTIVE DATASET STATUS PILLS */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span className="pill-badge pill-blue">
+              <Database size={11} />
+              <span>{CURRENT_PROJECT.sensor}</span>
+            </span>
+            <span className="pill-badge pill-green">
+              <Layers size={11} />
+              <span>{CURRENT_PROJECT.resolution} → 2.5 m (4×)</span>
+            </span>
+            <span className="pill-badge pill-purple">
+              <span>{CURRENT_PROJECT.crs}</span>
+            </span>
           </div>
         </div>
 
-        {/* COMPACT TOP HEADER */}
-        <header className="top-header">
-          <div className="breadcrumb">
-            {breadcrumbs.map((crumb, idx) => (
-              <React.Fragment key={idx}>
-                {idx > 0 && <span className="breadcrumb-separator">/</span>}
-                <span 
-                  className={idx === breadcrumbs.length - 1 ? 'breadcrumb-current' : 'breadcrumb-item'}
-                  onClick={() => {
-                    if (idx === 0 && crumb === 'PROJECTS') onNavigate('projects');
-                    if (idx === 1 && crumb === 'URBAN MUMBAI') onNavigate('project-workspace');
-                  }}
-                >
-                  {crumb}
-                </span>
-              </React.Fragment>
-            ))}
+        {/* RIGHT CONTROLS & SYSTEM HEALTH */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="pill-badge pill-green" style={{ padding: '4px 11px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="live-pulse-dot" />
+            <span style={{ fontSize: '11.5px', fontWeight: 600 }}>System Ready</span>
           </div>
 
-          <div className="header-meta">
-            <div className="meta-pill">
-              <span>DATASET:</span>
-              <strong>{CURRENT_PROJECT.sensor}</strong>
-            </div>
-            <div className="meta-pill">
-              <span>ACQ:</span>
-              <strong>{CURRENT_PROJECT.acquisitionDate}</strong>
-            </div>
-            <div className="meta-pill">
-              <span>STATUS:</span>
-              <strong style={{ color: 'var(--deep-sage)' }}>READY</strong>
-            </div>
-          </div>
-        </header>
+          <button 
+            className="btn btn-sm btn-secondary" 
+            title="Settings & Checkpoints"
+            onClick={() => setShowSettingsModal(true)}
+          >
+            <Settings size={13} />
+            <span>Settings</span>
+          </button>
+          
+          <button 
+            className="btn btn-sm btn-secondary" 
+            title="Model Documentation"
+            onClick={() => setShowHelpModal(true)}
+          >
+            <HelpCircle size={13} />
+          </button>
+        </div>
+      </header>
 
-        {/* CONTEXTUAL PROJECT NAVIGATION BAR (WHEN INSIDE A PROJECT) */}
-        {isProjectContext && (
-          <div className="project-subnav-bar">
-            {PROJECT_TABS.map(tab => {
-              const isActive = currentRoute === tab.id;
+      {/* MAIN CONTAINER (SIDEBAR + WORKSPACE) */}
+      <div className="app-main">
+        {/* MODERN SIDEBAR WITH ORBIT FOOTER MOTIF */}
+        <aside className="app-sidebar">
+          <nav className="nav-group">
+            {navItems.map(item => {
+              const Icon = item.icon;
+              const isActive = currentRoute === item.id || 
+                (item.id === 'projects' && currentRoute === 'project-workspace');
               return (
                 <button
-                  key={tab.id}
-                  className={`project-subnav-item ${isActive ? 'active' : ''}`}
-                  onClick={() => onNavigate(tab.id)}
+                  key={item.id}
+                  className={`nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => onNavigate(item.id)}
                 >
-                  <span>{tab.label}</span>
+                  <Icon size={15} />
+                  <span>{item.label}</span>
                 </button>
               );
             })}
-          </div>
-        )}
+          </nav>
 
-        {/* MAIN PAGE CONTAINER */}
-        <main className="content-container">
+          {/* SIDEBAR FOOTER WITH ORBIT MOTIF */}
+          <div className="sidebar-orbit-footer">
+            <svg width="100%" height="24" viewBox="0 0 180 24" style={{ position: 'absolute', top: '8px', left: 0, opacity: 0.35 }}>
+              <path d="M 0 20 Q 90 2, 180 20" fill="none" stroke="#2563EB" strokeWidth="1.2" strokeDasharray="3 3" />
+            </svg>
+            <div className="sidebar-orbit-dot" />
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              <div style={{ fontWeight: 700, fontSize: '11px', color: 'var(--text-primary)' }}>GeoSR-X Runtime</div>
+              <div className="mono" style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>CUDA 12.2 • SEN2SR v2.4</div>
+            </div>
+          </div>
+        </aside>
+
+        {/* CONTENT WORKSPACE */}
+        <main className="app-content">
           {children}
         </main>
       </div>
 
-      {/* TOAST NOTIFICATION CONTAINER */}
+      {/* TOAST NOTIFICATION */}
       {toastMessage && (
-        <div className="toast-container">
-          <div className="toast">
-            <CheckCircle2 size={15} color="var(--primary-sage)" />
-            <span>{toastMessage}</span>
+        <div className="toast-notification">
+          <CheckCircle2 size={16} color="#10B981" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* SETTINGS MODAL */}
+      {showSettingsModal && (
+        <div className="modal-backdrop">
+          <div className="modal-content">
+            <div className="modal-header">
+              <span style={{ fontWeight: 700, fontSize: '14px' }}>Model & System Settings</span>
+              <button 
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '16px' }}
+                onClick={() => setShowSettingsModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-body flex-col" style={{ gap: '14px' }}>
+              <div>
+                <label className="tech-label" style={{ display: 'block', marginBottom: '5px' }}>Active Super-Resolution Checkpoint</label>
+                <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px', border: '1px solid var(--border-subtle)', borderRadius: '6px', outline: 'none', backgroundColor: '#FFFFFF' }}>
+                  <option>SEN2SR-Transformer-4X-V2.4.pt (Default)</option>
+                  <option>SEN2SR-PhysicsGuided-Reflectance-L2A.pt</option>
+                  <option>Bicubic Baseline Interpolator</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="tech-label" style={{ display: 'block', marginBottom: '5px' }}>Compute Acceleration</label>
+                <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px', border: '1px solid var(--border-subtle)', borderRadius: '6px', outline: 'none', backgroundColor: '#FFFFFF' }}>
+                  <option>NVIDIA RTX GPU (CUDA 12.2 Accelerated)</option>
+                  <option>CPU Fallback (Float32)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="tech-label" style={{ display: 'block', marginBottom: '5px' }}>Tiling & Batch Size</label>
+                <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px', border: '1px solid var(--border-subtle)', borderRadius: '6px', outline: 'none', backgroundColor: '#FFFFFF' }}>
+                  <option>512 × 512 px (Overlap: 64 px)</option>
+                  <option>256 × 256 px (Low VRAM)</option>
+                  <option>1024 × 1024 px (High VRAM)</option>
+                </select>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn" onClick={() => setShowSettingsModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={() => setShowSettingsModal(false)}>Save Settings</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DOCUMENTATION MODAL */}
+      {showHelpModal && (
+        <div className="modal-backdrop">
+          <div className="modal-content" style={{ maxWidth: '580px' }}>
+            <div className="modal-header">
+              <span style={{ fontWeight: 700, fontSize: '14px' }}>GeoSR-X Architecture & Documentation</span>
+              <button 
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '16px' }}
+                onClick={() => setShowHelpModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-body flex-col" style={{ gap: '12px', fontSize: '12.5px', lineHeight: '1.55' }}>
+              <p>
+                <strong>GeoSR-X</strong> delivers 4× spatial resolution enhancement for Sentinel-2 L2A multi-spectral observations (10m → 2.5m Ground Sampling Distance).
+              </p>
+              <div style={{ backgroundColor: '#F8FAFC', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontWeight: 600, marginBottom: '6px', color: 'var(--text-primary)' }}>End-to-End Processing Stages:</div>
+                <ol style={{ paddingLeft: '18px', margin: 0, color: 'var(--text-secondary)' }}>
+                  <li>Radiometric calibration and atmospheric verification</li>
+                  <li>Multi-band radiance continuous representation</li>
+                  <li>Spatial transformer high-frequency edge synthesis</li>
+                  <li>Point Spread Function (PSF) modulation bounds</li>
+                  <li>Epistemic uncertainty & variance heatmap calculation</li>
+                  <li>GeoAI building footprint and road graph vector extraction</li>
+                </ol>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" onClick={() => setShowHelpModal(false)}>Close</button>
+            </div>
           </div>
         </div>
       )}

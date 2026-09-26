@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { RouteId } from '../components/AppShell';
 import { CHANGE_DETECTION_STATS } from '../data/mockData';
 import { GisMapCanvas } from '../components/GisMapCanvas';
+import { PageHeaderHero } from '../components/PageHeaderHero';
 import { 
   GitCompare, 
   Calendar, 
@@ -9,7 +10,7 @@ import {
   ArrowRight, 
   ListFilter, 
   Download, 
-  X
+  X 
 } from 'lucide-react';
 
 interface ChangeDetectionPageProps {
@@ -21,63 +22,65 @@ export const ChangeDetectionPage: React.FC<ChangeDetectionPageProps> = ({ onNavi
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   return (
-    <div className="flex-col" style={{ gap: '18px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '18px', fontWeight: 700 }}>Multi-Temporal Change Detection</h1>
-          <p style={{ color: 'var(--secondary-text)', fontSize: '12px' }}>
-            CO-REGISTERED SUPER-RESOLVED TEMPORAL DELTA ANALYSIS (10 JUN 2026 → 18 SEP 2026)
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            className="btn btn-secondary"
-            onClick={() => setIsDetailsModalOpen(true)}
-          >
-            <ListFilter size={13} />
-            <span>VIEW CHANGE DETAILS</span>
-          </button>
-          <button 
-            className="btn btn-primary"
-            onClick={() => onNavigate('domain')}
-          >
-            <span>DOMAIN INTELLIGENCE</span>
-            <ArrowRight size={13} />
-          </button>
-        </div>
-      </div>
+    <div className="flex-col" style={{ gap: '20px' }}>
+      {/* HEADER WITH PHOTOGRAPHIC EARTH ATMOSPHERE BACKGROUND */}
+      <PageHeaderHero 
+        accentColor="teal"
+        categoryText="MULTI-TEMPORAL DELTA ANALYSIS"
+        title="Multi-Temporal"
+        titleGradientText="Change Detection"
+        subtitle="Co-registered temporal comparison between 10 Jun 2026 and 18 Sep 2026"
+        actions={
+          <>
+            <button 
+              className="btn btn-secondary"
+              onClick={() => setIsDetailsModalOpen(true)}
+            >
+              <ListFilter size={13} />
+              <span>View Change Log</span>
+            </button>
+            <button 
+              className="btn btn-primary"
+              onClick={() => onNavigate('domain')}
+            >
+              <span>Continue to Domain Models</span>
+              <ArrowRight size={13} />
+            </button>
+          </>
+        }
+      />
 
-      {/* BEFORE / AFTER DUAL SYNCHRONIZED COMPARISON */}
+      {/* DUAL SYNCHRONIZED COMPARISON */}
       <div className="grid-2">
         <div className="panel">
           <div className="panel-header">
-            <span className="panel-title">
-              <Calendar size={13} color="var(--secondary-text)" />
-              <span>BEFORE ACQUISITION SCENE</span>
-            </span>
-            <span className="badge badge-muted">{CHANGE_DETECTION_STATS.dates.before}</span>
+            <div className="section-accent">
+              <span className="accent-bar accent-bar-slate" />
+              <span className="panel-title">Before Acquisition (T1)</span>
+            </div>
+            <span className="pill-badge pill-slate">{CHANGE_DETECTION_STATS.dates.before}</span>
           </div>
           <GisMapCanvas 
             mode="10m-raw" 
             height={220} 
-            title="T1: 10 JUN 2026"
-            badgeText="SENTINEL-2 L2A"
+            title="T1: 10 Jun 2026"
+            badgeText="Sentinel-2 L2A"
           />
         </div>
 
         <div className="panel">
           <div className="panel-header">
-            <span className="panel-title">
-              <Calendar size={13} color="var(--deep-sage)" />
-              <span>AFTER ACQUISITION SCENE (SUPER-RESOLVED)</span>
-            </span>
-            <span className="badge badge-ready">{CHANGE_DETECTION_STATS.dates.after}</span>
+            <div className="section-accent">
+              <span className="accent-bar accent-bar-blue" />
+              <span className="panel-title">After Acquisition (T2) — Super-Resolved</span>
+            </div>
+            <span className="pill-badge pill-green">{CHANGE_DETECTION_STATS.dates.after}</span>
           </div>
           <GisMapCanvas 
             mode="2.5m-geosr" 
             height={220} 
-            title="T2: 18 SEP 2026"
-            badgeText="GEOSR-X 2.5m"
+            title="T2: 18 Sep 2026"
+            badgeText="GeoSR 2.5m"
           />
         </div>
       </div>
@@ -85,18 +88,18 @@ export const ChangeDetectionPage: React.FC<ChangeDetectionPageProps> = ({ onNavi
       {/* CHANGE SUMMARY METRICS STRIP */}
       <div className="panel">
         <div className="panel-header">
-          <span className="panel-title">
-            <GitCompare size={14} color="var(--slate)" />
-            <span>CATEGORICAL CHANGE SUMMARY</span>
-          </span>
-          <span className="tech-label">27 TOTAL DETECTED EVENTS</span>
+          <div className="section-accent">
+            <span className="accent-bar accent-bar-teal" />
+            <span className="panel-title">Categorical Change Summary</span>
+          </div>
+          <span className="pill-badge pill-blue">27 total detected events</span>
         </div>
-        <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+        <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
           {CHANGE_DETECTION_STATS.summary.map((item, idx) => (
-            <div key={idx} className="metric-box" style={{ borderLeft: `3px solid ${item.color}` }}>
+            <div key={idx} className="metric-box" style={{ borderLeft: `4px solid ${item.color}` }}>
               <div className="metric-label">{item.type}</div>
               <div className="metric-value">{item.count} <span className="metric-unit">events</span></div>
-              <div className="metric-sub mono">{item.area || item.length}</div>
+              <div className="metric-sub mono" style={{ fontWeight: 600 }}>{item.area || item.length}</div>
             </div>
           ))}
         </div>
@@ -105,22 +108,22 @@ export const ChangeDetectionPage: React.FC<ChangeDetectionPageProps> = ({ onNavi
       {/* INTEGRATED CHANGE OVERLAY MAP */}
       <div className="panel">
         <div className="panel-header">
-          <span className="panel-title">
-            <Layers size={14} color="var(--deep-sage)" />
-            <span>INTEGRATED CHANGE VECTOR OVERLAY MAP</span>
-          </span>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
-              <span style={{ width: '8px', height: '8px', backgroundColor: '#C46A42' }}></span> Building Change
+          <div className="section-accent">
+            <span className="accent-bar accent-bar-blue" />
+            <span className="panel-title">Integrated Change Vector Overlay</span>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F43F5E' }} /> Building Changes
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
-              <span style={{ width: '8px', height: '8px', backgroundColor: '#B77A32' }}></span> Road Modification
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F59E0B' }} /> Road Modifications
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
-              <span style={{ width: '8px', height: '8px', backgroundColor: '#58644A' }}></span> Vegetation Alteration
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} /> Vegetation Alterations
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
-              <span style={{ width: '8px', height: '8px', backgroundColor: '#3E5E72' }}></span> Water Drainage
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#06B6D4' }} /> Water Drainage
             </span>
           </div>
         </div>
@@ -128,8 +131,8 @@ export const ChangeDetectionPage: React.FC<ChangeDetectionPageProps> = ({ onNavi
           <GisMapCanvas 
             mode="change-detection" 
             height={380} 
-            title="TEMPORAL CHANGE OVERLAYS"
-            badgeText="27 CHANGE VECTORS"
+            title="Temporal Changes"
+            badgeText="27 Change Vectors"
           />
         </div>
       </div>
@@ -139,9 +142,9 @@ export const ChangeDetectionPage: React.FC<ChangeDetectionPageProps> = ({ onNavi
         <div className="modal-backdrop">
           <div className="modal-content" style={{ maxWidth: '720px' }}>
             <div className="modal-header">
-              <span style={{ fontWeight: 600, fontSize: '13px' }}>MULTI-TEMPORAL CHANGE EVENT LOG</span>
+              <span style={{ fontWeight: 700, fontSize: '14px' }}>Multi-Temporal Change Event Log</span>
               <button 
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--secondary-text)' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
                 onClick={() => setIsDetailsModalOpen(false)}
               >
                 <X size={16} />
@@ -162,13 +165,13 @@ export const ChangeDetectionPage: React.FC<ChangeDetectionPageProps> = ({ onNavi
                 <tbody>
                   {CHANGE_DETECTION_STATS.changes.map(chg => (
                     <tr key={chg.id}>
-                      <td className="mono" style={{ fontWeight: 600 }}>{chg.id}</td>
-                      <td className="mono" style={{ fontSize: '11px' }}>{chg.location}</td>
+                      <td className="mono" style={{ fontWeight: 700 }}>{chg.id}</td>
+                      <td className="mono" style={{ fontSize: '11.5px' }}>{chg.location}</td>
                       <td>{chg.type}</td>
-                      <td className="mono" style={{ fontWeight: 600, color: 'var(--primary-text)' }}>{chg.delta}</td>
-                      <td className="mono" style={{ color: 'var(--deep-sage)' }}>{chg.confidence}</td>
+                      <td className="mono" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{chg.delta}</td>
+                      <td className="mono" style={{ color: 'var(--primary-blue)', fontWeight: 600 }}>{chg.confidence}</td>
                       <td style={{ textAlign: 'right' }}>
-                        <span className="badge badge-muted">{chg.category}</span>
+                        <span className="pill-badge pill-slate">{chg.category}</span>
                       </td>
                     </tr>
                   ))}

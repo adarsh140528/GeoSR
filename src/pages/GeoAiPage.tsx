@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import type { RouteId } from '../components/AppShell';
 import { GEOAI_STATS } from '../data/mockData';
 import { GisMapCanvas } from '../components/GisMapCanvas';
+import { PageHeaderHero } from '../components/PageHeaderHero';
 import { 
-  Cpu, 
   Download, 
   Layers, 
-  ArrowRight,
-  Building2,
-  GitBranch,
-  Trees,
-  Droplets
+  ArrowRight, 
+  Building2, 
+  GitBranch, 
+  Trees, 
+  Droplets 
 } from 'lucide-react';
 
 interface GeoAiPageProps {
@@ -22,73 +22,109 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
   const [activeTab, setActiveTab] = useState<'BUILDINGS' | 'ROADS' | 'LAND COVER' | 'VEGETATION' | 'WATER'>('BUILDINGS');
 
   return (
-    <div className="flex-col" style={{ gap: '18px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '18px', fontWeight: 700 }}>GeoAI Multi-Task Feature Extraction</h1>
-          <p style={{ color: 'var(--secondary-text)', fontSize: '12px' }}>
-            SUPER-RESOLVED VECTOR SEGMENTATION, BUILDING POLYGONS, AND ROAD GRAPH EXTRACTION
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            className="btn"
-            onClick={() => showToast('Exporting extracted vector features as GeoJSON / Shapefile.')}
-          >
-            <Download size={13} />
-            <span>EXPORT VECTOR GEOJSON</span>
-          </button>
-          <button 
-            className="btn btn-primary"
-            onClick={() => onNavigate('change-detection')}
-          >
-            <span>CHANGE DETECTION</span>
-            <ArrowRight size={13} />
-          </button>
-        </div>
+    <div className="flex-col" style={{ gap: '20px' }}>
+      {/* HEADER WITH PHOTOGRAPHIC EARTH ATMOSPHERE BACKGROUND */}
+      <PageHeaderHero 
+        accentColor="purple"
+        categoryText="MULTI-TASK VECTOR EXTRACTION"
+        title="GeoAI Feature"
+        titleGradientText="Extraction"
+        subtitle="Building footprint polygonization, road network graphs, and land cover classification"
+        actions={
+          <>
+            <button 
+              className="btn btn-secondary"
+              onClick={() => showToast('Exporting extracted vector features as GeoJSON bundle.')}
+            >
+              <Download size={13} />
+              <span>Export GeoJSON</span>
+            </button>
+            <button 
+              className="btn btn-primary"
+              onClick={() => onNavigate('change-detection')}
+            >
+              <span>Continue to Change Detection</span>
+              <ArrowRight size={13} />
+            </button>
+          </>
+        }
+      />
+
+      {/* FEATURE CLASS TABS */}
+      <div className="category-pill-bar">
+        <button 
+          className={`category-pill ${activeTab === 'BUILDINGS' ? 'active' : ''}`}
+          onClick={() => setActiveTab('BUILDINGS')}
+        >
+          <Building2 size={13} />
+          <span>Buildings ({GEOAI_STATS.buildings.count})</span>
+        </button>
+
+        <button 
+          className={`category-pill ${activeTab === 'ROADS' ? 'active' : ''}`}
+          onClick={() => setActiveTab('ROADS')}
+        >
+          <GitBranch size={13} />
+          <span>Roads ({GEOAI_STATS.roads.segments})</span>
+        </button>
+
+        <button 
+          className={`category-pill ${activeTab === 'LAND COVER' ? 'active' : ''}`}
+          onClick={() => setActiveTab('LAND COVER')}
+        >
+          <Layers size={13} />
+          <span>Land Cover (5 Classes)</span>
+        </button>
+
+        <button 
+          className={`category-pill ${activeTab === 'VEGETATION' ? 'active' : ''}`}
+          onClick={() => setActiveTab('VEGETATION')}
+        >
+          <Trees size={13} />
+          <span>Canopy & NDVI</span>
+        </button>
+
+        <button 
+          className={`category-pill ${activeTab === 'WATER' ? 'active' : ''}`}
+          onClick={() => setActiveTab('WATER')}
+        >
+          <Droplets size={13} />
+          <span>Water & Drainage</span>
+        </button>
       </div>
 
-      {/* TABS SELECTION */}
-      <div className="tabs-nav" style={{ borderRadius: 'var(--radius-sm) var(--radius-sm) 0 0' }}>
-        {(['BUILDINGS', 'ROADS', 'LAND COVER', 'VEGETATION', 'WATER'] as const).map(tab => (
-          <button
-            key={tab}
-            className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
+      {/* TWO COLUMN WORKSPACE */}
       <div className="grid-split-3-2">
-        {/* LEFT: VECTOR OVERLAY GIS CANVAS */}
-        <div className="panel" style={{ borderRadius: '0 0 var(--radius-md) var(--radius-md)' }}>
+        {/* LEFT: MAP WITH VECTOR OVERLAYS */}
+        <div className="panel">
           <div className="panel-header">
-            <span className="panel-title">
-              <Layers size={14} color="var(--deep-sage)" />
-              <span>SUPER-RESOLVED VECTOR OVERLAYS ({activeTab})</span>
-            </span>
-            <span className="badge badge-ready">EXTRACTION COMPLETE</span>
+            <div className="section-accent">
+              <span className="accent-bar accent-bar-purple" />
+              <span className="panel-title">Vector Overlay Layer ({activeTab})</span>
+            </div>
+            <span className="pill-badge pill-green">Extraction Complete</span>
           </div>
           <div className="panel-body" style={{ padding: '0' }}>
             <GisMapCanvas 
               mode="geoai" 
               height={440} 
-              title={`GEOAI ${activeTab}`}
-              badgeText="EPSG:32643 VECTOR"
+              title={`GeoAI ${activeTab}`}
+              badgeText="EPSG:32643 Vector"
             />
           </div>
         </div>
 
-        {/* RIGHT: TAB-SPECIFIC METRICS & ANALYTICS */}
-        <div className="flex-col" style={{ gap: '14px' }}>
+        {/* RIGHT: TAB-SPECIFIC METRICS */}
+        <div className="flex-col" style={{ gap: '16px' }}>
           {activeTab === 'BUILDINGS' && (
             <>
               <div className="panel">
                 <div className="panel-header">
-                  <span className="panel-title">BUILDING EXTRACTION TELEMETRY</span>
-                  <span className="badge badge-slate">2.5M GSD</span>
+                  <div className="section-accent">
+                    <span className="accent-bar accent-bar-blue" />
+                    <span className="panel-title">Building Extraction Metrics</span>
+                  </div>
+                  <span className="pill-badge pill-blue">2.5m GSD</span>
                 </div>
                 <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
                   <div className="metric-box">
@@ -98,11 +134,11 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
                   </div>
                   <div className="metric-box">
                     <div className="metric-label">AVG CONFIDENCE</div>
-                    <div className="metric-value" style={{ color: 'var(--deep-sage)' }}>{GEOAI_STATS.buildings.avgConfidence}</div>
+                    <div className="metric-value" style={{ color: 'var(--primary-blue)' }}>{GEOAI_STATS.buildings.avgConfidence}</div>
                     <div className="metric-sub">IoU Concordance &gt; 0.88</div>
                   </div>
                   <div className="metric-box" style={{ gridColumn: 'span 2' }}>
-                    <div className="metric-label">TOTAL BUILT-UP FOOTPRINT AREA</div>
+                    <div className="metric-label">TOTAL BUILT-UP AREA</div>
                     <div className="metric-value">{GEOAI_STATS.buildings.builtArea}</div>
                     <div className="metric-sub">Commercial: {GEOAI_STATS.buildings.commercial} | Res: {GEOAI_STATS.buildings.residential} | Ind: {GEOAI_STATS.buildings.industrial}</div>
                   </div>
@@ -111,12 +147,15 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
 
               <div className="panel">
                 <div className="panel-header">
-                  <span className="panel-title">STRUCTURAL TYPOLOGY PARTITION</span>
+                  <div className="section-accent">
+                    <span className="accent-bar accent-bar-blue" />
+                    <span className="panel-title">Building Typology Breakdown</span>
+                  </div>
                 </div>
                 <table className="tech-table">
                   <thead>
                     <tr>
-                      <th>Typology Class</th>
+                      <th>Class</th>
                       <th>Count</th>
                       <th>Area</th>
                       <th style={{ textAlign: 'right' }}>Avg Height</th>
@@ -151,8 +190,11 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
             <>
               <div className="panel">
                 <div className="panel-header">
-                  <span className="panel-title">ROAD NETWORK GRAPH EXTRACTION</span>
-                  <span className="badge badge-ready">TOPOLOGY VALIDATED</span>
+                  <div className="section-accent">
+                    <span className="accent-bar accent-bar-amber" />
+                    <span className="panel-title">Road Network Extraction</span>
+                  </div>
+                  <span className="pill-badge pill-green">Topology Validated</span>
                 </div>
                 <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
                   <div className="metric-box">
@@ -166,8 +208,8 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
                     <div className="metric-sub">Centerline vector sum</div>
                   </div>
                   <div className="metric-box" style={{ gridColumn: 'span 2' }}>
-                    <div className="metric-label">GRAPH CONNECTIVITY INDEX</div>
-                    <div className="metric-value" style={{ color: 'var(--deep-sage)' }}>{GEOAI_STATS.roads.connectivity}</div>
+                    <div className="metric-label">CONNECTIVITY INDEX</div>
+                    <div className="metric-value" style={{ color: 'var(--primary-blue)' }}>{GEOAI_STATS.roads.connectivity}</div>
                     <div className="metric-sub">Arterial: {GEOAI_STATS.roads.arterial} | Secondary: {GEOAI_STATS.roads.secondary}</div>
                   </div>
                 </div>
@@ -175,24 +217,27 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
 
               <div className="panel">
                 <div className="panel-header">
-                  <span className="panel-title">ROAD CLASSIFICATION BREAKDOWN</span>
+                  <div className="section-accent">
+                    <span className="accent-bar accent-bar-amber" />
+                    <span className="panel-title">Road Classification</span>
+                  </div>
                 </div>
                 <table className="tech-table">
                   <tbody>
                     <tr>
                       <td>Arterial Expressway (WEH Corridor)</td>
                       <td className="mono">{GEOAI_STATS.roads.arterial}</td>
-                      <td><span className="badge badge-ready">6-8 LANES</span></td>
+                      <td><span className="pill-badge pill-blue">6-8 Lanes</span></td>
                     </tr>
                     <tr>
                       <td>Secondary Arterials (Andheri-Kurla Rd)</td>
                       <td className="mono">{GEOAI_STATS.roads.secondary}</td>
-                      <td><span className="badge badge-ready">4 LANES</span></td>
+                      <td><span className="pill-badge pill-blue">4 Lanes</span></td>
                     </tr>
                     <tr>
                       <td>Local Access & Feeder Roads</td>
                       <td className="mono">{GEOAI_STATS.roads.local}</td>
-                      <td><span className="badge badge-muted">2 LANES</span></td>
+                      <td><span className="pill-badge pill-slate">2 Lanes</span></td>
                     </tr>
                   </tbody>
                 </table>
@@ -203,18 +248,21 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
           {(activeTab === 'LAND COVER' || activeTab === 'VEGETATION' || activeTab === 'WATER') && (
             <div className="panel">
               <div className="panel-header">
-                <span className="panel-title">LAND COVER PARTITION & FRACTION</span>
-                <span className="badge badge-muted">TOTAL: 3.84 KM²</span>
+                <div className="section-accent">
+                  <span className="accent-bar accent-bar-emerald" />
+                  <span className="panel-title">Land Cover Breakdown</span>
+                </div>
+                <span className="pill-badge pill-slate">Total: 3.84 km²</span>
               </div>
-              <div className="panel-body flex-col" style={{ gap: '10px' }}>
+              <div className="panel-body flex-col" style={{ gap: '12px' }}>
                 {GEOAI_STATS.landCover.map((lc, idx) => (
                   <div key={idx}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                       <span style={{ fontWeight: 600 }}>{lc.class}</span>
-                      <span className="mono">{lc.area} ({lc.percent}%)</span>
+                      <span className="mono" style={{ fontWeight: 700 }}>{lc.area} ({lc.percent}%)</span>
                     </div>
-                    <div style={{ height: '6px', backgroundColor: 'var(--surface-muted)', borderRadius: '3px', overflow: 'hidden' }}>
-                      <div style={{ width: `${lc.percent}%`, height: '100%', backgroundColor: lc.color }}></div>
+                    <div style={{ height: '7px', backgroundColor: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${lc.percent}%`, height: '100%', backgroundColor: lc.color, borderRadius: '4px' }} />
                     </div>
                   </div>
                 ))}
