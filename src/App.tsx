@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppShell, RouteId } from './components/AppShell';
+import { ImageProvider } from './context/ImageContext';
 import { MissionControlPage } from './pages/MissionControlPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ProjectWorkspacePage } from './pages/ProjectWorkspacePage';
@@ -63,39 +64,41 @@ export function App() {
   };
 
   return (
-    <AppShell 
-      currentRoute={currentRoute} 
-      onNavigate={navigateTo}
-      toastMessage={toastMessage}
-    >
-      {currentRoute === 'mission-control' && (
-        <MissionControlPage onNavigate={navigateTo} showToast={showToast} />
-      )}
-      {currentRoute === 'projects' && (
-        <ProjectsPage onNavigate={navigateTo} showToast={showToast} />
-      )}
-      {currentRoute === 'project-workspace' && (
-        <ProjectWorkspacePage onNavigate={navigateTo} showToast={showToast} />
-      )}
-      {currentRoute === 'project-setup' && (
-        <ProjectSetupPage onNavigate={navigateTo} showToast={showToast} />
-      )}
-      {currentRoute === 'super-resolution' && (
-        <SuperResolutionPage onNavigate={navigateTo} showToast={showToast} />
-      )}
-      {currentRoute === 'geoai' && (
-        <GeoAiPage onNavigate={navigateTo} showToast={showToast} />
-      )}
-      {currentRoute === 'change-detection' && (
-        <ChangeDetectionPage onNavigate={navigateTo} showToast={showToast} />
-      )}
-      {currentRoute === 'domain' && (
-        <DomainIntelligencePage onNavigate={navigateTo} showToast={showToast} />
-      )}
-      {currentRoute === 'reports' && (
-        <ReportsPage onNavigate={navigateTo} showToast={showToast} />
-      )}
-    </AppShell>
+    <ImageProvider>
+      <AppShell 
+        currentRoute={currentRoute} 
+        onNavigate={navigateTo}
+        toastMessage={toastMessage}
+      >
+        {currentRoute === 'mission-control' && (
+          <MissionControlPage onNavigate={navigateTo} showToast={showToast} />
+        )}
+        {currentRoute === 'projects' && (
+          <ProjectsPage onNavigate={navigateTo} showToast={showToast} />
+        )}
+        {currentRoute === 'project-workspace' && (
+          <ProjectWorkspacePage onNavigate={navigateTo} showToast={showToast} />
+        )}
+        {currentRoute === 'project-setup' && (
+          <ProjectSetupPage onNavigate={navigateTo} showToast={showToast} />
+        )}
+        {currentRoute === 'super-resolution' && (
+          <SuperResolutionPage onNavigate={navigateTo} showToast={showToast} />
+        )}
+        {currentRoute === 'geoai' && (
+          <GeoAiPage onNavigate={navigateTo} showToast={showToast} />
+        )}
+        {currentRoute === 'change-detection' && (
+          <ChangeDetectionPage onNavigate={navigateTo} showToast={showToast} />
+        )}
+        {currentRoute === 'domain' && (
+          <DomainIntelligencePage onNavigate={navigateTo} showToast={showToast} />
+        )}
+        {currentRoute === 'reports' && (
+          <ReportsPage onNavigate={navigateTo} showToast={showToast} />
+        )}
+      </AppShell>
+    </ImageProvider>
   );
 }
 

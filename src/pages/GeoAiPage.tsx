@@ -3,6 +3,7 @@ import type { RouteId } from '../components/AppShell';
 import { GEOAI_STATS } from '../data/mockData';
 import { GisMapCanvas } from '../components/GisMapCanvas';
 import { PageHeaderHero } from '../components/PageHeaderHero';
+import { useUserImage } from '../context/ImageContext';
 import { 
   Download, 
   Layers, 
@@ -20,6 +21,19 @@ interface GeoAiPageProps {
 
 export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) => {
   const [activeTab, setActiveTab] = useState<'BUILDINGS' | 'ROADS' | 'LAND COVER' | 'VEGETATION' | 'WATER'>('BUILDINGS');
+  const { featureAnalysis, metadata } = useUserImage();
+
+  // Dynamic values or mock fallback
+  const buildingsCount = featureAnalysis ? featureAnalysis.buildingsCount : GEOAI_STATS.buildings.count;
+  const roadSegments = featureAnalysis ? featureAnalysis.roadSegments : GEOAI_STATS.roads.segments;
+
+  const landCoverBreakdown = featureAnalysis ? [
+    { class: 'Built-up / Structures', percent: featureAnalysis.builtUpPercent, color: '#3B82F6' },
+    { class: 'Road Infrastructure', percent: Math.round(featureAnalysis.roadSegments * 0.4), color: '#F59E0B' },
+    { class: 'Vegetation Canopy', percent: featureAnalysis.vegetationPercent, color: '#10B981' },
+    { class: 'Water Bodies', percent: featureAnalysis.waterPercent, color: '#06B6D4' },
+    { class: 'Barren Soil', percent: featureAnalysis.barrenPercent, color: '#64748B' },
+  ] : GEOAI_STATS.landCover;
 
   return (
     <div className="flex-col" style={{ gap: '20px' }}>
@@ -29,7 +43,7 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
         categoryText="MULTI-TASK VECTOR EXTRACTION"
         title="GeoAI Feature"
         titleGradientText="Extraction"
-        subtitle="Building footprint polygonization, road network graphs, and land cover classification"
+        subtitle={metadata ? `Detected features dynamically analyzed from image: ${metadata.filename}` : "Building footprint polygonization, road network graphs, and land cover classification"}
         actions={
           <>
             <button 
@@ -57,7 +71,7 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
           onClick={() => setActiveTab('BUILDINGS')}
         >
           <Building2 size={13} />
-          <span>Buildings ({GEOAI_STATS.buildings.count})</span>
+          <span>Buildings ({buildingsCount})</span>
         </button>
 
         <button 
@@ -65,7 +79,7 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
           onClick={() => setActiveTab('ROADS')}
         >
           <GitBranch size={13} />
-          <span>Roads ({GEOAI_STATS.roads.segments})</span>
+          <span>Roads ({roadSegments})</span>
         </button>
 
         <button 
@@ -81,7 +95,7 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
           onClick={() => setActiveTab('VEGETATION')}
         >
           <Trees size={13} />
-          <span>Canopy & NDVI</span>
+          <span>Canopy ({featureAnalysis ? `${featureAnalysis.vegetationPercent}%` : '28%'})</span>
         </button>
 
         <button 
@@ -89,7 +103,7 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
           onClick={() => setActiveTab('WATER')}
         >
           <Droplets size={13} />
-          <span>Water & Drainage</span>
+          <span>Water ({featureAnalysis ? `${featureAnalysis.waterPercent}%` : '12%'})</span>
         </button>
       </div>
 
@@ -102,14 +116,14 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
               <span className="accent-bar accent-bar-purple" />
               <span className="panel-title">Vector Overlay Layer ({activeTab})</span>
             </div>
-            <span className="pill-badge pill-green">Extraction Complete</span>
+            <span className="pill-badge pill-green">Pixel Detection Complete</span>
           </div>
           <div className="panel-body" style={{ padding: '0' }}>
             <GisMapCanvas 
               mode="geoai" 
               height={440} 
               title={`GeoAI ${activeTab}`}
-              badgeText="EPSG:32643 Vector"
+              badgeText={featureAnalysis ? "Analyzed Image Features" : "EPSG:32643 Vector"}
             />
           </div>
         </div>
@@ -129,7 +143,7 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
                 <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
                   <div className="metric-box">
                     <div className="metric-label">TOTAL DETECTED</div>
-                    <div className="metric-value">{GEOAI_STATS.buildings.count.toLocaleString()}</div>
+                    <div className="metric-value">{buildingsCount.toLocaleString()}</div>
                     <div className="metric-sub">Polygons digitized</div>
                   </div>
                   <div className="metric-box">
@@ -164,19 +178,19 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
                   <tbody>
                     <tr>
                       <td>Residential High-Rise</td>
-                      <td className="mono">710</td>
+                      <td className="mono">{Math.round(buildingsCount * 0.55)}</td>
                       <td className="mono">1.18 km²</td>
                       <td className="mono" style={{ textAlign: 'right' }}>32.4 m</td>
                     </tr>
                     <tr>
                       <td>Commercial & Tech Parks</td>
-                      <td className="mono">382</td>
+                      <td className="mono">{Math.round(buildingsCount * 0.3)}</td>
                       <td className="mono">0.82 km²</td>
                       <td className="mono" style={{ textAlign: 'right' }}>44.1 m</td>
                     </tr>
                     <tr>
                       <td>Industrial Sheds & Logistics</td>
-                      <td className="mono">192</td>
+                      <td className="mono">{Math.round(buildingsCount * 0.15)}</td>
                       <td className="mono">0.43 km²</td>
                       <td className="mono" style={{ textAlign: 'right' }}>14.2 m</td>
                     </tr>
@@ -199,7 +213,7 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
                 <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
                   <div className="metric-box">
                     <div className="metric-label">ROAD SEGMENTS</div>
-                    <div className="metric-value">{GEOAI_STATS.roads.segments}</div>
+                    <div className="metric-value">{roadSegments}</div>
                     <div className="metric-sub">Graph edges extracted</div>
                   </div>
                   <div className="metric-box">
@@ -250,16 +264,16 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
               <div className="panel-header">
                 <div className="section-accent">
                   <span className="accent-bar accent-bar-emerald" />
-                  <span className="panel-title">Land Cover Breakdown</span>
+                  <span className="panel-title">Land Cover Breakdown (Pixel Classification)</span>
                 </div>
-                <span className="pill-badge pill-slate">Total: 3.84 km²</span>
+                <span className="pill-badge pill-slate">Total: 100%</span>
               </div>
               <div className="panel-body flex-col" style={{ gap: '12px' }}>
-                {GEOAI_STATS.landCover.map((lc, idx) => (
+                {landCoverBreakdown.map((lc, idx) => (
                   <div key={idx}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                       <span style={{ fontWeight: 600 }}>{lc.class}</span>
-                      <span className="mono" style={{ fontWeight: 700 }}>{lc.area} ({lc.percent}%)</span>
+                      <span className="mono" style={{ fontWeight: 700 }}>{lc.percent}%</span>
                     </div>
                     <div style={{ height: '7px', backgroundColor: 'var(--bg-track)', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{ width: `${lc.percent}%`, height: '100%', backgroundColor: lc.color, borderRadius: '4px' }} />
