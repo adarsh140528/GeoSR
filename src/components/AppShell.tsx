@@ -62,24 +62,31 @@ export const AppShell: React.FC<AppShellProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {/* Logo & Brand */}
           <div 
-            style={{ display: 'flex', alignItems: 'center', gap: '9px', cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
             onClick={() => onNavigate('mission-control')}
           >
             <div style={{
-              width: '30px',
-              height: '30px',
-              borderRadius: '7px',
-              background: 'var(--primary-gradient)',
+              padding: '4px 8px',
+              borderRadius: '8px',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#D0DDE8',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.4)'
             }}>
-              <Satellite size={16} />
+              <img 
+                src="/logo.png" 
+                alt="GeoSR Logo" 
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 2px 8px rgba(67, 112, 160, 0.4))'
+                }}
+              />
             </div>
             <div>
-              <span style={{ fontWeight: 800, fontSize: '16px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+              <span style={{ fontWeight: 800, fontSize: '18px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
                 GeoSR-X
               </span>
             </div>

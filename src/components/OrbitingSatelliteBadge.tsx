@@ -77,27 +77,30 @@ export const OrbitingSatelliteBadge: React.FC<OrbitingSatelliteBadgeProps> = ({ 
         </div>
       </div>
 
-      {/* Central Badge — dark, no neon glow */}
+      {/* Central Badge — official logo */}
       <div style={{
         position: 'absolute',
         top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '58px', height: '58px',
-        borderRadius: '14px',
-        background: 'linear-gradient(160deg, #1A2C40 0%, #2E4A63 55%, #354F6E 100%)',
+        width: '84px', height: '84px',
+        borderRadius: '20px',
+        background: 'rgba(9, 11, 15, 0.95)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#7AA8C8',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
-        border: '1px solid rgba(67,112,160,0.25)',
+        boxShadow: '0 4px 24px rgba(67, 112, 160, 0.35)',
+        border: '1.5px solid rgba(67,112,160,0.4)',
+        padding: '8px',
         zIndex: 3
       }}>
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="satellite-spin-icon">
-          <path d="M13 7 9 3 5 7l4 4" />
-          <path d="m17 11 4 4-4 4-4-4" />
-          <path d="m8 12 4 4 6-6-4-4Z" />
-          <path d="m16 8 3-3" />
-          <path d="M9 21a6 6 0 0 0-6-6" />
-        </svg>
+        <img 
+          src="/logo.png" 
+          alt="GeoSR Logo" 
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 2px 8px rgba(67, 112, 160, 0.5))'
+          }}
+        />
       </div>
     </div>
   );
