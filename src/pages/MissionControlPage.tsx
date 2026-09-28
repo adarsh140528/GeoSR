@@ -366,9 +366,9 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '9px 12px',
-                  backgroundColor: '#F8FAFC',
+                  backgroundColor: 'var(--bg-elevated)',
                   borderRadius: 'var(--radius-sm)',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid var(--border-subtle)',
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -382,22 +382,22 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
               </div>
             ))}
 
-            {/* WAVE GRADIENT FOOTER */}
+            {/* CUDA FOOTER */}
             <div style={{
               marginTop: 'auto',
               padding: '12px 14px',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(236, 253, 245, 0.95) 100%)',
-              border: '1px solid #D1FAE5',
+              background: 'linear-gradient(135deg, rgba(14,165,233,0.1) 0%, rgba(52,211,153,0.07) 100%)',
+              border: '1px solid rgba(14,165,233,0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Activity size={16} color="#059669" />
-                <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#065F46' }}>CUDA Acceleration Online</span>
+                <Activity size={16} color="#34D399" />
+                <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#34D399' }}>CUDA Acceleration Online</span>
               </div>
-              <span className="mono" style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>24.2 TFLOPS</span>
+              <span className="mono" style={{ fontSize: '11px', color: '#2DD4BF', fontWeight: 700 }}>24.2 TFLOPS</span>
             </div>
           </div>
         </div>
@@ -418,17 +418,14 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
             onClick={() => onNavigate('super-resolution')}
           >
             <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: '#2563EB',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 3px 8px rgba(37, 99, 235, 0.35)'
+              width: '34px', height: '34px',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(67,112,160,0.15)',
+              border: '1px solid rgba(67,112,160,0.22)',
+              color: '#7AA8C8',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Sparkles size={17} />
+              <Sparkles size={16} />
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>Super Resolution</div>
@@ -445,17 +442,14 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
             onClick={() => onNavigate('geoai')}
           >
             <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: '#8B5CF6',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 3px 8px rgba(139, 92, 246, 0.35)'
+              width: '34px', height: '34px',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(92,78,122,0.15)',
+              border: '1px solid rgba(92,78,122,0.22)',
+              color: '#8878B0',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Cpu size={17} />
+              <Cpu size={16} />
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>GeoAI Analysis</div>
@@ -472,17 +466,14 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
             onClick={() => onNavigate('change-detection')}
           >
             <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: '#0D9488',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 3px 8px rgba(13, 148, 136, 0.35)'
+              width: '34px', height: '34px',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(58,110,104,0.15)',
+              border: '1px solid rgba(58,110,104,0.22)',
+              color: '#589088',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <GitCompare size={17} />
+              <GitCompare size={16} />
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>Change Detection</div>
@@ -499,17 +490,14 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
             onClick={() => onNavigate('domain')}
           >
             <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: '#10B981',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 3px 8px rgba(16, 185, 129, 0.35)'
+              width: '34px', height: '34px',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(74,122,94,0.15)',
+              border: '1px solid rgba(74,122,94,0.22)',
+              color: '#72A882',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Globe2 size={17} />
+              <Globe2 size={16} />
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>Domain Models</div>
@@ -526,17 +514,14 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
             onClick={() => onNavigate('reports')}
           >
             <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: '#64748B',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 3px 8px rgba(100, 116, 139, 0.35)'
+              width: '34px', height: '34px',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(56,66,82,0.3)',
+              border: '1px solid rgba(56,66,82,0.4)',
+              color: '#66748A',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <FileText size={17} />
+              <FileText size={16} />
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>Reports</div>

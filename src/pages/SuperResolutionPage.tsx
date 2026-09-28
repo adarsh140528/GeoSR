@@ -61,7 +61,7 @@ export const SuperResolutionPage: React.FC<SuperResolutionPageProps> = ({ onNavi
             <select 
               value={selectedModel}
               onChange={e => setSelectedModel(e.target.value as any)}
-              style={{ padding: '7px 12px', fontSize: '12px', border: '1px solid var(--border-subtle)', borderRadius: '6px', backgroundColor: '#FFFFFF', fontWeight: 600 }}
+              style={{ padding: '7px 12px', fontSize: '12px', borderRadius: '6px', fontWeight: 600 }}
             >
               <option value="SEN2SR-mamba-main">SEN2SR Transformer 4× (32.8 dB)</option>
               <option value="SEN2SRLite-full">SEN2SR-Lite Fast (30.9 dB)</option>
@@ -229,7 +229,7 @@ export const SuperResolutionPage: React.FC<SuperResolutionPageProps> = ({ onNavi
                   <span style={{ fontWeight: 600, color: '#047857' }}>High Confidence Tier</span>
                   <span className="mono" style={{ fontWeight: 700 }}>71.4% (1.73 km²)</span>
                 </div>
-                <div style={{ height: '7px', backgroundColor: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ height: '7px', backgroundColor: 'var(--bg-track)', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{ width: '71.4%', height: '100%', backgroundColor: '#10B981' }} />
                 </div>
               </div>
@@ -239,7 +239,7 @@ export const SuperResolutionPage: React.FC<SuperResolutionPageProps> = ({ onNavi
                   <span style={{ fontWeight: 600, color: '#B45309' }}>Moderate Uncertainty</span>
                   <span className="mono" style={{ fontWeight: 700 }}>21.8% (0.53 km²)</span>
                 </div>
-                <div style={{ height: '7px', backgroundColor: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ height: '7px', backgroundColor: 'var(--bg-track)', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{ width: '21.8%', height: '100%', backgroundColor: '#F59E0B' }} />
                 </div>
               </div>
@@ -249,7 +249,7 @@ export const SuperResolutionPage: React.FC<SuperResolutionPageProps> = ({ onNavi
                   <span style={{ fontWeight: 600, color: '#BE123C' }}>High Uncertainty (Shadows)</span>
                   <span className="mono" style={{ fontWeight: 700 }}>6.8% (0.17 km²)</span>
                 </div>
-                <div style={{ height: '7px', backgroundColor: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ height: '7px', backgroundColor: 'var(--bg-track)', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{ width: '6.8%', height: '100%', backgroundColor: '#F43F5E' }} />
                 </div>
               </div>

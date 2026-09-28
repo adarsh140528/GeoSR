@@ -64,10 +64,8 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ onNavigate, showToas
               width: '100%',
               padding: '7px 12px 7px 36px',
               fontSize: '12.5px',
-              border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-sm)',
               outline: 'none',
-              backgroundColor: '#F8FAFC'
             }}
           />
         </div>
@@ -177,7 +175,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ onNavigate, showToas
                     <select 
                       value={newSensor} 
                       onChange={e => setNewSensor(e.target.value)}
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px', border: '1px solid var(--border-subtle)', borderRadius: '6px', outline: 'none', backgroundColor: '#FFFFFF' }}
+                      style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px', borderRadius: '6px' }}
                     >
                       <option>Sentinel-2 L2A (10m Multi-spectral)</option>
                       <option>Landsat 8/9 OLI (30m Optical)</option>
@@ -186,7 +184,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ onNavigate, showToas
                   </div>
                   <div>
                     <label className="tech-label" style={{ display: 'block', marginBottom: '5px' }}>Target Resolution</label>
-                    <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px', border: '1px solid var(--border-subtle)', borderRadius: '6px', outline: 'none', backgroundColor: '#FFFFFF' }}>
+                    <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px', borderRadius: '6px' }}>
                       <option>4× Super-Resolution (10m → 2.5m)</option>
                       <option>2× Super-Resolution (10m → 5.0m)</option>
                     </select>

@@ -19,7 +19,7 @@ export const FloatingSatelliteIcon: React.FC<FloatingSatelliteIconProps> = ({ si
         <rect x="20" y="14.5" width="2" height="3" fill="#64748B" />
 
         {/* Central Satellite Body */}
-        <rect x="12" y="9" width="8" height="14" rx="2" fill="#F8FAFC" stroke="#64748B" strokeWidth="0.9" />
+        <rect x="12" y="9" width="8" height="14" rx="2" fill="#CBD5E1" stroke="#94A3B8" strokeWidth="0.9" />
         {/* Optical Sensor Aperture */}
         <circle cx="16" cy="14" r="2.5" fill="#2563EB" stroke="#60A5FA" strokeWidth="0.8" />
         <circle cx="16" cy="14" r="1" fill="#38BDF8" />

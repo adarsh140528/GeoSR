@@ -50,8 +50,8 @@ export const ProjectSetupPage: React.FC<ProjectSetupPageProps> = ({ onNavigate, 
           {/* Active File Card */}
           <div className="panel" style={{ padding: '16px' }}>
             <div style={{
-              border: '1px dashed #CBD5E1',
-              backgroundColor: '#F8FAFC',
+              border: '1px dashed var(--border-subtle)',
+              backgroundColor: 'var(--bg-elevated)',
               borderRadius: 'var(--radius-sm)',
               padding: '16px 20px',
               display: 'flex',
@@ -59,7 +59,7 @@ export const ProjectSetupPage: React.FC<ProjectSetupPageProps> = ({ onNavigate, 
               justifyContent: 'space-between'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--primary-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', boxShadow: '0 2px 8px rgba(37,99,235,0.3)' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-accent)' }}>
                   <FileCheck size={20} />
                 </div>
                 <div>

@@ -78,7 +78,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ onNavigate, showToast 
         </div>
 
         {/* METADATA GRID */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', padding: '14px 18px', backgroundColor: '#F8FAFC', borderRadius: 'var(--radius-sm)', marginBottom: '22px', border: '1px solid var(--border-subtle)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', padding: '14px 18px', backgroundColor: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', marginBottom: '22px', border: '1px solid var(--border-subtle)' }}>
           <div>
             <div className="tech-label" style={{ fontSize: '9.5px' }}>PROJECT</div>
             <div style={{ fontWeight: 700, fontSize: '13px', marginTop: '2px' }}>{CURRENT_PROJECT.name}</div>

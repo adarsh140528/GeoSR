@@ -261,7 +261,7 @@ export const GeoAiPage: React.FC<GeoAiPageProps> = ({ onNavigate, showToast }) =
                       <span style={{ fontWeight: 600 }}>{lc.class}</span>
                       <span className="mono" style={{ fontWeight: 700 }}>{lc.area} ({lc.percent}%)</span>
                     </div>
-                    <div style={{ height: '7px', backgroundColor: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ height: '7px', backgroundColor: 'var(--bg-track)', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{ width: `${lc.percent}%`, height: '100%', backgroundColor: lc.color, borderRadius: '4px' }} />
                     </div>
                   </div>

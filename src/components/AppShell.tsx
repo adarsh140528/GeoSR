@@ -66,17 +66,17 @@ export const AppShell: React.FC<AppShellProps> = ({
             onClick={() => onNavigate('mission-control')}
           >
             <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
+              width: '30px',
+              height: '30px',
+              borderRadius: '7px',
               background: 'var(--primary-gradient)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#FFFFFF',
-              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
+              color: '#D0DDE8',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.4)'
             }}>
-              <Satellite size={17} />
+              <Satellite size={16} />
             </div>
             <div>
               <span style={{ fontWeight: 800, fontSize: '16px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
@@ -153,8 +153,8 @@ export const AppShell: React.FC<AppShellProps> = ({
 
           {/* SIDEBAR FOOTER WITH ORBIT MOTIF */}
           <div className="sidebar-orbit-footer">
-            <svg width="100%" height="24" viewBox="0 0 180 24" style={{ position: 'absolute', top: '8px', left: 0, opacity: 0.35 }}>
-              <path d="M 0 20 Q 90 2, 180 20" fill="none" stroke="#2563EB" strokeWidth="1.2" strokeDasharray="3 3" />
+            <svg width="100%" height="24" viewBox="0 0 180 24" style={{ position: 'absolute', top: '8px', left: 0, opacity: 0.5 }}>
+              <path d="M 0 20 Q 90 2, 180 20" fill="none" stroke="#0EA5E9" strokeWidth="1.2" strokeDasharray="3 3" />
             </svg>
             <div className="sidebar-orbit-dot" />
             <div style={{ position: 'relative', zIndex: 2 }}>
@@ -194,7 +194,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             <div className="modal-body flex-col" style={{ gap: '14px' }}>
               <div>
                 <label className="tech-label" style={{ display: 'block', marginBottom: '5px' }}>Active Super-Resolution Checkpoint</label>
-                <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px', border: '1px solid var(--border-subtle)', borderRadius: '6px', outline: 'none', backgroundColor: '#FFFFFF' }}>
+                <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px' }}>
                   <option>SEN2SR-Transformer-4X-V2.4.pt (Default)</option>
                   <option>SEN2SR-PhysicsGuided-Reflectance-L2A.pt</option>
                   <option>Bicubic Baseline Interpolator</option>
@@ -203,7 +203,7 @@ export const AppShell: React.FC<AppShellProps> = ({
 
               <div>
                 <label className="tech-label" style={{ display: 'block', marginBottom: '5px' }}>Compute Acceleration</label>
-                <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px', border: '1px solid var(--border-subtle)', borderRadius: '6px', outline: 'none', backgroundColor: '#FFFFFF' }}>
+                <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px' }}>
                   <option>NVIDIA RTX GPU (CUDA 12.2 Accelerated)</option>
                   <option>CPU Fallback (Float32)</option>
                 </select>
@@ -211,7 +211,7 @@ export const AppShell: React.FC<AppShellProps> = ({
 
               <div>
                 <label className="tech-label" style={{ display: 'block', marginBottom: '5px' }}>Tiling & Batch Size</label>
-                <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px', border: '1px solid var(--border-subtle)', borderRadius: '6px', outline: 'none', backgroundColor: '#FFFFFF' }}>
+                <select style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px' }}>
                   <option>512 × 512 px (Overlap: 64 px)</option>
                   <option>256 × 256 px (Low VRAM)</option>
                   <option>1024 × 1024 px (High VRAM)</option>
@@ -239,11 +239,11 @@ export const AppShell: React.FC<AppShellProps> = ({
                 ✕
               </button>
             </div>
-            <div className="modal-body flex-col" style={{ gap: '12px', fontSize: '12.5px', lineHeight: '1.55' }}>
+            <div className="modal-body flex-col" style={{ gap: '12px', fontSize: '12.5px', lineHeight: '1.55', color: 'var(--text-secondary)' }}>
               <p>
-                <strong>GeoSR-X</strong> delivers 4× spatial resolution enhancement for Sentinel-2 L2A multi-spectral observations (10m → 2.5m Ground Sampling Distance).
+                <strong style={{ color: 'var(--text-primary)' }}>GeoSR-X</strong> delivers 4× spatial resolution enhancement for Sentinel-2 L2A multi-spectral observations (10m → 2.5m Ground Sampling Distance).
               </p>
-              <div style={{ backgroundColor: '#F8FAFC', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ backgroundColor: 'var(--bg-elevated)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontWeight: 600, marginBottom: '6px', color: 'var(--text-primary)' }}>End-to-End Processing Stages:</div>
                 <ol style={{ paddingLeft: '18px', margin: 0, color: 'var(--text-secondary)' }}>
                   <li>Radiometric calibration and atmospheric verification</li>
