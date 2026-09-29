@@ -5,6 +5,7 @@ import { GisMapCanvas } from '../components/GisMapCanvas';
 import { ProjectThumbnail } from '../components/ProjectThumbnail';
 import { OrbitingSatelliteBadge } from '../components/OrbitingSatelliteBadge';
 import { FloatingSatelliteIcon } from '../components/FloatingSatelliteIcon';
+import { useUserImage } from '../context/ImageContext';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -19,7 +20,12 @@ import {
   Layers, 
   Activity, 
   Database, 
-  ExternalLink 
+  ExternalLink,
+  Upload,
+  CheckCircle2,
+  Building2,
+  GitBranch,
+  Trees
 } from 'lucide-react';
 
 interface MissionControlPageProps {
@@ -30,6 +36,7 @@ interface MissionControlPageProps {
 export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNavigate, showToast }) => {
   const [activeStepId, setActiveStepId] = useState(6);
   const [isSimulating, setIsSimulating] = useState(false);
+  const { userImage, metadata, featureAnalysis, setUserImageFromFile } = useUserImage();
 
   const handleRunSimulation = () => {
     setIsSimulating(true);
@@ -48,6 +55,23 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
       }
     }, 700);
   };
+
+  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      try {
+        await setUserImageFromFile(e.target.files[0]);
+        showToast(`Image loaded: ${e.target.files[0].name}`);
+      } catch (err: any) {
+        showToast(err.message || 'Error loading image');
+      }
+    }
+  };
+
+  // Dynamically derived stats from user uploaded image or default fallback
+  const buildingsCount = featureAnalysis ? featureAnalysis.buildingsCount : 842;
+  const roadSegments = featureAnalysis ? featureAnalysis.roadSegments : 216;
+  const vegPercent = featureAnalysis ? featureAnalysis.vegetationPercent : 18;
+  const builtPercent = featureAnalysis ? featureAnalysis.builtUpPercent : 64;
 
   return (
     <div className="flex-col" style={{ gap: '22px' }}>
@@ -70,23 +94,27 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
             </h1>
             
             <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '6px', lineHeight: 1.6 }}>
-              Manage your satellite datasets, run physics-constrained super-resolution from 10m to 2.5m, and extract actionable GeoAI features.
+              {metadata ? (
+                <>Active Image Workspace: <strong style={{ color: 'var(--text-primary)' }}>{metadata.filename}</strong> ({metadata.width}×{metadata.height}px • {metadata.sizeMB} MB). Features extracted dynamically.</>
+              ) : (
+                "Manage your satellite datasets, run physics-constrained super-resolution from 10m to 2.5m, and extract actionable GeoAI features."
+              )}
             </p>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
               <FloatingSatelliteIcon size={26} />
-              <button 
-                className="btn btn-primary"
-                onClick={() => onNavigate('projects')}
-              >
-                <Plus size={14} />
-                <span>New Project</span>
-              </button>
+              
+              <label className="btn btn-primary" style={{ cursor: 'pointer', margin: 0 }}>
+                <Upload size={14} />
+                <span>Upload Satellite Image</span>
+                <input type="file" accept="image/*,.tif,.tiff" style={{ display: 'none' }} onChange={handleFileInput} />
+              </label>
+
               <button 
                 className="btn btn-secondary"
-                onClick={() => onNavigate('project-workspace')}
+                onClick={() => onNavigate('super-resolution')}
               >
-                <span>Open Active Workspace</span>
+                <span>Super Resolution Lab</span>
                 <ArrowRight size={13} />
               </button>
             </div>
@@ -106,12 +134,12 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
           <div className="panel-header">
             <div className="section-accent">
               <span className="accent-bar accent-bar-blue" />
-              <span className="panel-title">CURRENT ACTIVE PROJECT</span>
+              <span className="panel-title">CURRENT ACTIVE PROJECT SCENE</span>
             </div>
             <div style={{ display: 'flex', gap: '6px' }}>
               <span className="pill-badge pill-green">
                 <span className="live-pulse-dot" />
-                <span>Active</span>
+                <span>{userImage ? 'Image Loaded' : 'Active'}</span>
               </span>
             </div>
           </div>
@@ -119,7 +147,7 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
           <div className="panel-body flex-col" style={{ gap: '16px' }}>
             <div>
               <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {CURRENT_PROJECT.name}
+                {metadata ? metadata.filename : CURRENT_PROJECT.name}
               </h2>
               
               {/* COLOR-CODED PASTEL PILL BADGES */}
@@ -132,20 +160,52 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
                   <Layers size={11} />
                   <span>{CURRENT_PROJECT.resolution} → 2.5m (4×)</span>
                 </span>
-                <span className="pill-badge pill-purple">
-                  <span>{CURRENT_PROJECT.crs}</span>
-                </span>
+                {metadata && (
+                  <span className="pill-badge pill-purple mono">
+                    {metadata.width} × {metadata.height} px
+                  </span>
+                )}
                 <span className="pill-badge pill-amber">
                   <span>Acq: {CURRENT_PROJECT.acquisitionDate}</span>
                 </span>
-                <span className="pill-badge pill-slate">
-                  <span>Cloud: {CURRENT_PROJECT.cloudCoverage}</span>
-                </span>
               </div>
 
-              <p style={{ color: 'var(--text-secondary)', fontSize: '12.5px', marginTop: '12px', lineHeight: 1.55 }}>
-                Physics-constrained super-resolution model configured with 6 multispectral bands. Point Spread Function (PSF) and atmospheric radiative transfer bounds validated.
-              </p>
+              {/* DYNAMIC FEATURE STATS ROW */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '8px',
+                marginTop: '12px',
+                padding: '10px 12px',
+                background: 'var(--bg-elevated)',
+                borderRadius: '8px',
+                border: '1px solid var(--border-subtle)'
+              }}>
+                <div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Building2 size={11} color="#3B82F6" /> Buildings
+                  </div>
+                  <div className="mono" style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', marginTop: '2px' }}>
+                    {buildingsCount}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <GitBranch size={11} color="#F59E0B" /> Roads
+                  </div>
+                  <div className="mono" style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', marginTop: '2px' }}>
+                    {roadSegments}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Trees size={11} color="#10B981" /> Canopy
+                  </div>
+                  <div className="mono" style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', marginTop: '2px' }}>
+                    {vegPercent}%
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* MINI GIS MAP PREVIEW */}
@@ -153,8 +213,8 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
               <GisMapCanvas 
                 mode="2.5m-geosr"
                 height={210}
-                title="Urban Mumbai 2.5m"
-                badgeText="PSNR 32.8 dB"
+                title={metadata ? metadata.filename : "Urban Mumbai 2.5m"}
+                badgeText="2.5m SR Scene"
                 showControls={false}
               />
             </div>
@@ -175,12 +235,6 @@ export const MissionControlPage: React.FC<MissionControlPageProps> = ({ onNaviga
               >
                 <Sparkles size={13} />
                 <span>Super Resolution Lab</span>
-              </button>
-              <button 
-                className="btn"
-                onClick={() => onNavigate('project-setup')}
-              >
-                <span>Setup & QA</span>
               </button>
             </div>
           </div>

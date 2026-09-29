@@ -65,31 +65,20 @@ export const AppShell: React.FC<AppShellProps> = ({
             style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
             onClick={() => onNavigate('mission-control')}
           >
-            <div style={{
-              padding: '4px 8px',
-              borderRadius: '8px',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <img 
-                src="/logo.png" 
-                alt="GeoSR Logo" 
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  objectFit: 'contain',
-                  filter: 'drop-shadow(0 2px 8px rgba(67, 112, 160, 0.4))'
-                }}
-              />
-            </div>
-            <div>
-              <span style={{ fontWeight: 800, fontSize: '18px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-                GeoSR-X
-              </span>
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="GeoSR Logo" 
+              style={{
+                height: '52px',
+                width: 'auto',
+                maxWidth: '220px',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 2px 10px rgba(67, 112, 160, 0.45))'
+              }}
+            />
+            <span style={{ fontWeight: 800, fontSize: '20px', letterSpacing: '-0.02em', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+              GeoSR-X
+            </span>
           </div>
 
           <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--border-subtle)' }} />

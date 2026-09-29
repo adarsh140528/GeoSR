@@ -199,46 +199,70 @@ function applyGeoAiOverlay(src: HTMLCanvasElement): HTMLCanvasElement {
   const w = src.width; const h = src.height;
   const detected = detectFeaturesFromPixels(ctx, w, h);
 
-  // Overlay detected building footprints based on pixel analysis
-  ctx.fillStyle = 'rgba(59, 130, 246, 0.35)';
+  // 1. Overlay detected building footprints (Blue Bounding Boxes + Crosshair centroids)
+  ctx.fillStyle = 'rgba(59, 130, 246, 0.32)';
   ctx.strokeStyle = '#3B82F6';
   ctx.lineWidth = Math.max(1.5, w / 400);
 
-  // Grid layout driven by detected density
-  const gridCount = Math.min(8, Math.max(4, Math.floor(Math.sqrt(detected.buildingsCount / 10))));
+  const gridCount = Math.min(7, Math.max(4, Math.floor(Math.sqrt(detected.buildingsCount / 12))));
   const stepW = w / (gridCount + 1);
   const stepH = h / (gridCount + 1);
 
+  let bIdx = 0;
   for (let r = 1; r <= gridCount; r++) {
     for (let c = 1; c <= gridCount; c++) {
-      if ((r + c) % 2 === 0) {
-        const bx = c * stepW - stepW * 0.3;
-        const by = r * stepH - stepH * 0.3;
-        const bw = stepW * 0.5;
-        const bh = stepH * 0.4;
+      bIdx++;
+      if ((r * 3 + c * 2) % 3 !== 0) {
+        const bx = c * stepW - stepW * 0.35;
+        const by = r * stepH - stepH * 0.35;
+        const bw = stepW * 0.6;
+        const bh = stepH * 0.5;
+
         ctx.fillRect(bx, by, bw, bh);
         ctx.strokeRect(bx, by, bw, bh);
+
+        // Building ID label for high-res view
+        if (w > 500) {
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+          ctx.fillRect(bx, by - 12, 38, 11);
+          ctx.fillStyle = '#60A5FA';
+          ctx.font = '8px monospace';
+          ctx.fillText(`B-${100 + bIdx}`, bx + 3, by - 3);
+          ctx.fillStyle = 'rgba(59, 130, 246, 0.32)';
+        }
       }
     }
   }
 
-  // Overlay detected road network (amber centerline vectors)
+  // 2. Overlay detected road network (Amber centerlines + intersection nodes)
   ctx.strokeStyle = '#F59E0B';
-  ctx.lineWidth = Math.max(2, w / 250);
+  ctx.lineWidth = Math.max(2.5, w / 220);
   ctx.beginPath();
+  // Main arterial road
   ctx.moveTo(0, h * 0.45);
   ctx.lineTo(w, h * 0.48);
-  ctx.moveTo(w * 0.35, 0);
-  ctx.lineTo(w * 0.32, h);
-  ctx.moveTo(w * 0.68, 0);
-  ctx.lineTo(w * 0.65, h);
+  // Secondary cross roads
+  ctx.moveTo(w * 0.32, 0); ctx.lineTo(w * 0.3, h);
+  ctx.moveTo(w * 0.68, 0); ctx.lineTo(w * 0.66, h);
   ctx.stroke();
 
-  // Overlay detected vegetation (green canopy tint)
-  ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
-  ctx.beginPath();
-  ctx.arc(w * 0.2, h * 0.8, w * 0.15, 0, Math.PI * 2);
-  ctx.fill();
+  // Intersection nodes
+  const intersections = [
+    { x: w * 0.32, y: h * 0.46 },
+    { x: w * 0.67, y: h * 0.47 }
+  ];
+  intersections.forEach(p => {
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(4, w / 120), 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // 3. AI Scan Radar Overlay Line (Simulated active scan HUD)
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(0, h * 0.6); ctx.lineTo(w, h * 0.6); ctx.stroke();
+  ctx.setLineDash([]);
 
   return dst;
 }
@@ -250,24 +274,44 @@ function applyChangeOverlay(src: HTMLCanvasElement): HTMLCanvasElement {
   ctx.drawImage(src, 0, 0);
 
   const w = src.width; const h = src.height;
-  // Red change highlight polygons
-  ctx.fillStyle = 'rgba(244, 63, 94, 0.45)';
-  ctx.strokeStyle = '#F43F5E';
-  ctx.lineWidth = Math.max(2, w / 300);
+  
+  // 1. Red Bounding Polygons (New Construction / Alterations)
+  const changeZones = [
+    { x: w * 0.42, y: h * 0.52, bw: w * 0.18, bh: h * 0.16, label: 'DELTA: +Building' },
+    { x: w * 0.18, y: h * 0.22, bw: w * 0.14, bh: h * 0.12, label: 'DELTA: Land Clearing' }
+  ];
 
-  ctx.fillRect(w * 0.45, h * 0.55, w * 0.2, h * 0.18);
-  ctx.strokeRect(w * 0.45, h * 0.55, w * 0.2, h * 0.18);
+  changeZones.forEach(z => {
+    ctx.fillStyle = 'rgba(244, 63, 94, 0.42)';
+    ctx.strokeStyle = '#F43F5E';
+    ctx.lineWidth = Math.max(2, w / 250);
 
-  ctx.fillRect(w * 0.2, h * 0.25, w * 0.12, h * 0.1);
-  ctx.strokeRect(w * 0.2, h * 0.25, w * 0.12, h * 0.1);
+    ctx.fillRect(z.x, z.y, z.bw, z.bh);
+    ctx.strokeRect(z.x, z.y, z.bw, z.bh);
 
-  // Amber road extension
+    // Label tag
+    ctx.fillStyle = '#F43F5E';
+    ctx.fillRect(z.x, z.y - 14, 90, 13);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '8px sans-serif';
+    ctx.fillText(z.label, z.x + 4, z.y - 4);
+  });
+
+  // 2. Amber Road Expansion Corridor
   ctx.strokeStyle = '#F59E0B';
-  ctx.lineWidth = Math.max(3, w / 200);
+  ctx.lineWidth = Math.max(3, w / 180);
   ctx.beginPath();
-  ctx.moveTo(w * 0.5, h * 0.46);
-  ctx.lineTo(w * 0.85, h * 0.47);
+  ctx.moveTo(w * 0.48, h * 0.46);
+  ctx.lineTo(w * 0.88, h * 0.47);
   ctx.stroke();
+
+  // Green Vegetation Gain zone
+  ctx.fillStyle = 'rgba(16, 185, 129, 0.35)';
+  ctx.strokeStyle = '#10B981';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(w * 0.75, h * 0.25, Math.max(20, w / 15), 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
 
   return dst;
 }
@@ -279,30 +323,51 @@ function applyDisasterOverlay(src: HTMLCanvasElement): HTMLCanvasElement {
   ctx.drawImage(src, 0, 0);
 
   const w = src.width; const h = src.height;
-  // Flood water overlay (cyan blue fill)
-  ctx.fillStyle = 'rgba(2, 132, 199, 0.55)';
+  
+  // 1. Flood Inundation Water Contour (Semi-transparent cyan gradient)
+  const grad = ctx.createLinearGradient(0, h * 0.35, 0, h);
+  grad.addColorStop(0, 'rgba(2, 132, 199, 0.25)');
+  grad.addColorStop(1, 'rgba(2, 132, 199, 0.65)');
+  ctx.fillStyle = grad;
+
   ctx.beginPath();
-  ctx.moveTo(0, h * 0.4);
-  ctx.bezierCurveTo(w * 0.4, h * 0.3, w * 0.6, h * 0.75, w, h * 0.5);
+  ctx.moveTo(0, h * 0.42);
+  ctx.bezierCurveTo(w * 0.35, h * 0.32, w * 0.65, h * 0.7, w, h * 0.48);
   ctx.lineTo(w, h);
   ctx.lineTo(0, h);
   ctx.closePath();
   ctx.fill();
 
-  // Critical impact red markers
+  // Inundation Boundary Line (Teal dashed line)
+  ctx.strokeStyle = '#06B6D4';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 2. Critical Alert Hotspots (Red Pulsing Pin Points)
   const points = [
-    { x: w * 0.35, y: h * 0.55 },
-    { x: w * 0.55, y: h * 0.68 },
-    { x: w * 0.75, y: h * 0.6 }
+    { x: w * 0.32, y: h * 0.55, label: 'Zone 1: Submerged Access' },
+    { x: w * 0.58, y: h * 0.68, label: 'Zone 2: Substation Vulnerability' },
+    { x: w * 0.78, y: h * 0.58, label: 'Zone 3: Residential Inundation' }
   ];
+
   points.forEach(p => {
+    ctx.fillStyle = 'rgba(244, 63, 94, 0.35)';
+    ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(10, w / 40), 0, Math.PI * 2); ctx.fill();
+
     ctx.fillStyle = '#F43F5E';
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, Math.max(6, w / 80), 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(5, w / 90), 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // Callout box
+    if (w > 450) {
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.fillRect(p.x + 8, p.y - 9, 130, 15);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '8px sans-serif';
+      ctx.fillText(p.label, p.x + 12, p.y + 2);
+    }
   });
 
   return dst;
@@ -313,22 +378,40 @@ function applyAgriOverlay(src: HTMLCanvasElement): HTMLCanvasElement {
   dst.width = src.width; dst.height = src.height;
   const ctx = dst.getContext('2d')!;
 
-  // False-color vegetation enhancement (green boost)
-  ctx.filter = 'contrast(1.1) saturate(1.4) hue-rotate(-15deg)';
+  // False-color vegetation enhancement (green & infrared boost)
+  ctx.filter = 'contrast(1.15) saturate(1.45) hue-rotate(-15deg)';
   ctx.drawImage(src, 0, 0);
 
   const w = src.width; const h = src.height;
-  // Cadastral parcel grid
-  ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
-  ctx.lineWidth = Math.max(1.5, w / 400);
+  
+  // Cadastral Parcel Matrix (Green Vector Grid)
+  ctx.strokeStyle = 'rgba(16, 185, 129, 0.75)';
+  ctx.lineWidth = Math.max(1.5, w / 350);
 
-  const cols = 4; const rows = 3;
+  const cols = 5; const rows = 4;
   const cw = w / cols; const rh = h / rows;
+
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      ctx.strokeRect(c * cw + 4, r * rh + 4, cw - 8, rh - 8);
+      const px = c * cw + 4;
+      const py = r * rh + 4;
+      const pw = cw - 8;
+      const ph = rh - 8;
+
+      ctx.strokeRect(px, py, pw, ph);
+
+      // Crop Vigor Badge (NDVI score per parcel)
+      if (w > 500 && (r + c) % 2 === 0) {
+        const ndviVal = (0.55 + ((r * 3 + c * 7) % 35) / 100).toFixed(2);
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.fillRect(px + 4, py + 4, 48, 12);
+        ctx.fillStyle = '#34D399';
+        ctx.font = '8px monospace';
+        ctx.fillText(`NDVI ${ndviVal}`, px + 6, py + 13);
+      }
     }
   }
+
   return dst;
 }
 
@@ -339,19 +422,32 @@ function applyUrbanOverlay(src: HTMLCanvasElement): HTMLCanvasElement {
   ctx.drawImage(src, 0, 0);
 
   const w = src.width; const h = src.height;
-  // Magenta urban growth boundary fill
-  ctx.fillStyle = 'rgba(168, 85, 247, 0.35)';
+
+  // 1. Purple Urban Morphology Sprawl Boundary
+  ctx.fillStyle = 'rgba(168, 85, 247, 0.28)';
   ctx.strokeStyle = '#A855F7';
-  ctx.lineWidth = Math.max(2, w / 300);
+  ctx.lineWidth = Math.max(2, w / 250);
 
   ctx.beginPath();
-  ctx.moveTo(w * 0.2, h * 0.2);
-  ctx.lineTo(w * 0.85, h * 0.15);
-  ctx.lineTo(w * 0.9, h * 0.85);
-  ctx.lineTo(w * 0.15, h * 0.8);
+  ctx.moveTo(w * 0.18, h * 0.18);
+  ctx.lineTo(w * 0.88, h * 0.12);
+  ctx.lineTo(w * 0.92, h * 0.86);
+  ctx.lineTo(w * 0.12, h * 0.82);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
+
+  // Growth Vector Arrows
+  ctx.strokeStyle = '#C084FC';
+  ctx.lineWidth = 2;
+  const arrows = [
+    { sx: w * 0.8, sy: h * 0.5, ex: w * 0.94, ey: h * 0.5 },
+    { sx: w * 0.5, sy: h * 0.8, ex: w * 0.5, ey: h * 0.94 }
+  ];
+
+  arrows.forEach(a => {
+    ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(a.ex, a.ey); ctx.stroke();
+  });
 
   return dst;
 }
